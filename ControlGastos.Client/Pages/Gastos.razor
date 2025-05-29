@@ -1,0 +1,141 @@
+@page "/gastos"
+@inject HttpClient Http
+@using Blazorise
+@using ControlGastos.Core.DTOs
+@using System.Net.Http.Json
+
+<PageTitle>Registros de Gastos</PageTitle>
+
+<Heading Size="HeadingSize.Is3">Registros de Gastos</Heading>
+
+<DataGrid TItem="GastoEncabezadoDto" Data="gastos" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
+    <DataGridColumns>
+        <DataGridColumn TItem="GastoEncabezadoDto" Field="@nameof(GastoEncabezadoDto.Id)" Caption="ID" />
+        <DataGridColumn TItem="GastoEncabezadoDto" Field="@nameof(GastoEncabezadoDto.Fecha)" Caption="Fecha" />
+        <DataGridColumn TItem="GastoEncabezadoDto" Field="@nameof(GastoEncabezadoDto.FondoMonetarioNombre)" Caption="Fondo Monetario" />
+        <DataGridColumn TItem="GastoEncabezadoDto" Field="@nameof(GastoEncabezadoDto.NombreComercio)" Caption="Comercio" />
+        <DataGridColumn TItem="GastoEncabezadoDto" Field="@nameof(GastoEncabezadoDto.TipoDocumento)" Caption="Tipo Documento" />
+        <DataGridCommandColumn TItem="GastoEncabezadoDto" />
+    </DataGridColumns>
+</DataGrid>
+
+<Button Color="Color.Success" Clicked="NuevoGasto">Nuevo Gasto</Button>
+
+<Modal @bind-Visible="modalVisible">
+    <ModalHeader>@(editando ? "Editar Gasto" : "Nuevo Gasto")</ModalHeader>
+    <ModalBody>
+        <Validation Validator="validator">
+            <DateEdit @bind-Date="gastoEdit.Fecha" Placeholder="Fecha" />
+            <TextEdit @bind-Text="gastoEdit.FondoMonetarioNombre" Placeholder="Fondo Monetario" />
+            <TextEdit @bind-Text="gastoEdit.Observaciones" Placeholder="Observaciones" />
+            <TextEdit @bind-Text="gastoEdit.NombreComercio" Placeholder="Nombre de Comercio" />
+            <TextEdit @bind-Text="gastoEdit.TipoDocumento" Placeholder="Tipo de Documento" />
+            <Heading Size="HeadingSize.Is5">Detalle de Gastos</Heading>
+            <DataGrid TItem="GastoDetalleDto" Data="gastoEdit.Detalles" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
+                <DataGridColumns>
+                    <DataGridColumn TItem="GastoDetalleDto" Field="@nameof(GastoDetalleDto.TipoGastoNombre)" Caption="Tipo de Gasto" />
+                    <DataGridColumn TItem="GastoDetalleDto" Field="@nameof(GastoDetalleDto.Monto)" Caption="Monto" />
+                    <DataGridCommandColumn TItem="GastoDetalleDto" />
+                </DataGridColumns>
+            </DataGrid>
+            <Button Color="Color.Info" Clicked="AgregarDetalle">Agregar Detalle</Button>
+        </Validation>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="GuardarGastoAsync">Guardar</Button>
+        <Button Color="Color.Secondary" Clicked="()=>modalVisible=false">Cancelar</Button>
+    </ModalFooter>
+</Modal>
+
+<Modal @bind-Visible="modalDetalleVisible">
+    <ModalHeader>Agregar Detalle</ModalHeader>
+    <ModalBody>
+        <Validation Validator="detalleValidator">
+            <TextEdit @bind-Text="detalleEdit.TipoGastoNombre" Placeholder="Tipo de Gasto" />
+            <NumericEdit @bind-Value="detalleEdit.Monto" Placeholder="Monto" />
+        </Validation>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="ConfirmarDetalle">Agregar</Button>
+        <Button Color="Color.Secondary" Clicked="()=>modalDetalleVisible=false">Cancelar</Button>
+    </ModalFooter>
+</Modal>
+
+@code {
+    List<GastoEncabezadoDto> gastos = new();
+    GastoEncabezadoDto gastoEdit = new() 
+    { 
+        Detalles = new List<GastoDetalleDto>() 
+    };
+    
+    bool modalVisible = false;
+    bool editando = false;
+    Validations? validator;
+    bool modalDetalleVisible = false;
+    Validations? detalleValidator;
+    GastoDetalleDto detalleEdit = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarGastosAsync();
+    }
+
+    async Task CargarGastosAsync()
+    {
+        gastos = await Http.GetFromJsonAsync<List<GastoEncabezadoDto>>("api/GastoEncabezado") ?? new();
+    }
+
+    void NuevoGasto()
+    {
+        gastoEdit = new GastoEncabezadoDto { Detalles = new List<GastoDetalleDto>() };
+        editando = false;
+        modalVisible = true;
+    }
+
+    async Task GuardarGastoAsync()
+    {
+        if (validator is null || !await validator.ValidateAll()) return;
+        // Validar sobregiro de presupuesto aquí si es necesario
+        if (editando)
+            await Http.PutAsJsonAsync($"api/GastoEncabezado/{gastoEdit.Id}", gastoEdit);
+        else
+            await Http.PostAsJsonAsync("api/GastoEncabezado", gastoEdit);
+        modalVisible = false;
+        await CargarGastosAsync();
+    }
+
+    void EditGasto(GastoEncabezadoDto gasto)
+    {
+        gastoEdit = new GastoEncabezadoDto
+        {
+            Id = gasto.Id,
+            Fecha = gasto.Fecha,
+            FondoMonetarioNombre = gasto.FondoMonetarioNombre,
+            Observaciones = gasto.Observaciones,
+            NombreComercio = gasto.NombreComercio,
+            TipoDocumento = gasto.TipoDocumento,
+            Detalles = gasto.Detalles.Select(d => new GastoDetalleDto { TipoGastoNombre = d.TipoGastoNombre, Monto = d.Monto }).ToList()
+        };
+        editando = true;
+        modalVisible = true;
+    }
+
+    async Task DeleteGasto(GastoEncabezadoDto gasto)
+    {
+        await Http.DeleteAsync($"api/GastoEncabezado/{gasto.Id}");
+        await CargarGastosAsync();
+    }
+
+    void AgregarDetalle()
+    {
+        detalleEdit = new GastoDetalleDto();
+        modalDetalleVisible = true;
+    }
+
+    async Task ConfirmarDetalle()
+    {
+        if (detalleValidator is null || !await detalleValidator.ValidateAll()) return;
+        gastoEdit.Detalles.Add(new GastoDetalleDto { TipoGastoNombre = detalleEdit.TipoGastoNombre, Monto = detalleEdit.Monto });
+        modalDetalleVisible = false;
+    }
+}

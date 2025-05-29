@@ -1,0 +1,84 @@
+@page "/tipos-gasto"
+@inject HttpClient Http
+@using Blazorise
+@using ControlGastos.Core.DTOs
+@using System.Net.Http.Json
+
+<PageTitle>Tipos de Gasto</PageTitle>
+
+<Heading Size="HeadingSize.Is3">Tipos de Gasto</Heading>
+
+<DataGrid TItem="TipoGastoDto" Data="tiposGasto" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
+    <DataGridColumns>
+        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Id)" Caption="ID" />
+        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Codigo)" Caption="Código" />
+        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Nombre)" Caption="Nombre" />
+        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Descripcion)" Caption="Descripción" />
+        <DataGridCommandColumn TItem="TipoGastoDto" />
+    </DataGridColumns>
+</DataGrid>
+
+<Modal @bind-Visible="modalVisible">
+    <ModalHeader>@(editando ? "Editar Tipo de Gasto" : "Nuevo Tipo de Gasto")</ModalHeader>
+    <ModalBody>
+        <Validation @ref="validator">
+            <TextEdit @bind-Text="tipoGastoEdit.Nombre" Placeholder="Nombre" />
+            <TextEdit @bind-Text="tipoGastoEdit.Descripcion" Placeholder="Descripción" />
+        </Validation>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="GuardarTipoGastoAsync">Guardar</Button>
+        <Button Color="Color.Secondary" Clicked="()=>modalVisible=false">Cancelar</Button>
+    </ModalFooter>
+</Modal>
+
+<Button Color="Color.Success" Clicked="NuevoTipoGasto">Nuevo Tipo de Gasto</Button>
+
+@code {
+    List<TipoGastoDto> tiposGasto = new();
+    TipoGastoDto tipoGastoEdit = new();
+    bool modalVisible = false;
+    bool editando = false;
+    Validations? validator;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarTiposGastoAsync();
+    }
+
+    async Task CargarTiposGastoAsync()
+    {
+        tiposGasto = await Http.GetFromJsonAsync<List<TipoGastoDto>>("api/TipoGasto") ?? new();
+    }
+
+    void NuevoTipoGasto()
+    {
+        tipoGastoEdit = new TipoGastoDto();
+        editando = false;
+        modalVisible = true;
+    }
+
+    async Task GuardarTipoGastoAsync()
+    {
+        if (validator is null || !await validator.ValidateAll()) return;
+        if (editando)
+            await Http.PutAsJsonAsync($"api/TipoGasto/{tipoGastoEdit.Id}", tipoGastoEdit);
+        else
+            await Http.PostAsJsonAsync("api/TipoGasto", tipoGastoEdit);
+        modalVisible = false;
+        await CargarTiposGastoAsync();
+    }
+
+    void EditTipoGasto(TipoGastoDto tipo)
+    {
+        tipoGastoEdit = new TipoGastoDto { Id = tipo.Id, Codigo = tipo.Codigo, Nombre = tipo.Nombre, Descripcion = tipo.Descripcion };
+        editando = true;
+        modalVisible = true;
+    }
+
+    async Task DeleteTipoGasto(TipoGastoDto tipo)
+    {
+        await Http.DeleteAsync($"api/TipoGasto/{tipo.Id}");
+        await CargarTiposGastoAsync();
+    }
+}

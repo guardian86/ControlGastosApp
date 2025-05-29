@@ -1,0 +1,89 @@
+@page "/presupuestos"
+@inject HttpClient Http
+@using Blazorise
+@using ControlGastos.Core.DTOs
+@using System.Net.Http.Json
+
+<PageTitle>Presupuestos</PageTitle>
+
+<Heading Size="HeadingSize.Is3">Presupuesto por Tipo de Gasto</Heading>
+
+<DataGrid TItem="PresupuestoDto" Data="presupuestos" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
+    <DataGridColumns>
+        <DataGridColumn TItem="PresupuestoDto" Field="@nameof(PresupuestoDto.Id)" Caption="ID" />
+        <DataGridColumn TItem="PresupuestoDto" Field="@nameof(PresupuestoDto.UsuarioId)" Caption="Usuario" />
+        <DataGridColumn TItem="PresupuestoDto" Field="@nameof(PresupuestoDto.TipoGastoNombre)" Caption="Tipo de Gasto" />
+        <DataGridColumn TItem="PresupuestoDto" Field="@nameof(PresupuestoDto.Mes)" Caption="Mes" />
+        <DataGridColumn TItem="PresupuestoDto" Field="@nameof(PresupuestoDto.Anio)" Caption="Año" />
+        <DataGridColumn TItem="PresupuestoDto" Field="@nameof(PresupuestoDto.MontoPresupuestado)" Caption="Monto" />
+        <DataGridCommandColumn TItem="PresupuestoDto" />
+    </DataGridColumns>
+</DataGrid>
+
+<Modal @bind-Visible="modalVisible">
+    <ModalHeader>@(editando ? "Editar Presupuesto" : "Nuevo Presupuesto")</ModalHeader>
+    <ModalBody>
+        <Validations @ref="validator">
+            <NumericEdit @bind-Value="presupuestoEdit.UsuarioId" Placeholder="Usuario" />
+            <TextEdit @bind-Text="presupuestoEdit.TipoGastoNombre" Placeholder="Tipo de Gasto" />
+            <NumericEdit @bind-Value="presupuestoEdit.Mes" Placeholder="Mes" />
+            <NumericEdit @bind-Value="presupuestoEdit.Anio" Placeholder="Año" />
+            <NumericEdit @bind-Value="presupuestoEdit.MontoPresupuestado" Placeholder="Monto" />
+        </Validations>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="GuardarPresupuestoAsync">Guardar</Button>
+        <Button Color="Color.Secondary" Clicked="()=>modalVisible=false">Cancelar</Button>
+    </ModalFooter>
+</Modal>
+
+<Button Color="Color.Success" Clicked="NuevoPresupuesto">Nuevo Presupuesto</Button>
+
+@code {
+    List<PresupuestoDto> presupuestos = new();
+    PresupuestoDto presupuestoEdit = new();
+    bool modalVisible = false;
+    bool editando = false;
+    Validations? validator;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarPresupuestosAsync();
+    }
+
+    async Task CargarPresupuestosAsync()
+    {
+        presupuestos = await Http.GetFromJsonAsync<List<PresupuestoDto>>("api/Presupuestos") ?? new();
+    }
+
+    void NuevoPresupuesto()
+    {
+        presupuestoEdit = new PresupuestoDto();
+        editando = false;
+        modalVisible = true;
+    }
+
+    async Task GuardarPresupuestoAsync()
+    {
+        if (validator is null || !await validator.ValidateAll()) return;
+        if (editando)
+            await Http.PutAsJsonAsync($"api/Presupuestos/{presupuestoEdit.Id}", presupuestoEdit);
+        else
+            await Http.PostAsJsonAsync("api/Presupuestos", presupuestoEdit);
+        modalVisible = false;
+        await CargarPresupuestosAsync();
+    }
+
+    void EditPresupuesto(PresupuestoDto presupuesto)
+    {
+        presupuestoEdit = new PresupuestoDto { Id = presupuesto.Id, UsuarioId = presupuesto.UsuarioId, TipoGastoNombre = presupuesto.TipoGastoNombre, Mes = presupuesto.Mes, Anio = presupuesto.Anio, MontoPresupuestado = presupuesto.MontoPresupuestado };
+        editando = true;
+        modalVisible = true;
+    }
+
+    async Task DeletePresupuesto(PresupuestoDto presupuesto)
+    {
+        await Http.DeleteAsync($"api/Presupuestos/{presupuesto.Id}");
+        await CargarPresupuestosAsync();
+    }
+}

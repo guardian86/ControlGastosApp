@@ -1,0 +1,29 @@
+﻿<Bar Background="Background.Primary" ThemeContrast="ThemeContrast.Dark">
+    <BarBrand>
+        <BarItem>
+            <BarLink To="/">Control de Gastos</BarLink>
+        </BarItem>
+    </BarBrand>
+    <BarToggler BarTogglerMode="BarTogglerMode.Left" />
+    <BarMenu>
+        <BarStart>
+            <BarItem><BarLink To="/">Inicio</BarLink></BarItem>
+            <BarDropdown Text="Mantenimientos">
+                <BarDropdownItem To="/tipos-gasto">Tipos de Gasto</BarDropdownItem>
+                <BarDropdownItem To="/fondos-monetarios">Fondos Monetarios</BarDropdownItem>
+            </BarDropdown>
+            <BarDropdown Text="Movimientos">
+                <BarDropdownItem To="/presupuestos">Presupuesto por tipo de gasto</BarDropdownItem>
+                <BarDropdownItem To="/gastos">Registros de gastos</BarDropdownItem>
+                <BarDropdownItem To="/depositos">Depósitos</BarDropdownItem>
+            </BarDropdown>
+            <BarDropdown Text="Consultas y Reportes">
+                <BarDropdownItem To="/movimientos">Consulta de movimientos</BarDropdownItem>
+                <BarDropdownItem To="/graficos">Gráfico Comparativo</BarDropdownItem>
+            </BarDropdown>
+        </BarStart>
+    </BarMenu>
+</Bar>
+<NavLink class="nav-link" href="tipos-gasto">
+        Tipos de Gasto
+    </NavLink>

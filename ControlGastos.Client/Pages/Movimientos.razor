@@ -1,0 +1,60 @@
+@page "/movimientos"
+@inject HttpClient Http
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Blazorise.Bootstrap5
+@using Blazorise.Icons.FontAwesome
+@using ControlGastos.Core.DTOs
+@using System.Net.Http.Json
+@* @using System.Collections.Generic
+@using ControlGastos.Core.DTOs *@
+
+<PageTitle>Consulta de Movimientos</PageTitle>
+
+<Heading Size="HeadingSize.Is3">Consulta de Movimientos</Heading>
+
+<Validation Validator="@validator">
+    <DateEdit @bind-Date="fechaInicio" Placeholder="Fecha Inicio" />
+    <DateEdit @bind-Date="fechaFin" Placeholder="Fecha Fin" />
+    <Button Color="Color.Primary" OnClick="BuscarMovimientos">Buscar</Button>
+</Validation>
+
+<DataGrid TItem="MovimientoDto" Data="@movimientos" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
+    <DataGridColumns>
+        <DataGridColumn TItem="MovimientoDto" Field="@nameof(MovimientoDto.Tipo)" Caption="Tipo" />
+        <DataGridColumn TItem="MovimientoDto" Field="@nameof(MovimientoDto.Fecha)" Caption="Fecha" />
+        <DataGridColumn TItem="MovimientoDto" Field="@nameof(MovimientoDto.FondoMonetarioNombre)" Caption="Fondo Monetario" />
+        <DataGridColumn TItem="MovimientoDto" Field="@nameof(MovimientoDto.Monto)" Caption="Monto" />
+        <DataGridColumn TItem="MovimientoDto" Field="@nameof(MovimientoDto.Descripcion)" Caption="Descripción" />
+    </DataGridColumns>
+</DataGrid>
+
+
+
+@code {
+    private DateTime fechaInicio = DateTime.Today.AddMonths(-1);
+    private DateTime fechaFin = DateTime.Today;
+    private List<MovimientoDto> movimientos = new();
+    private Validations? validator;
+
+    private async Task BuscarMovimientos()
+    {
+        if (validator is null) 
+            throw new InvalidOperationException("El validador no está inicializado.");
+
+        if (!await validator.ValidateAll()) 
+            return;
+
+        try
+        {
+            var url = $"api/Movimientos?fechaInicio={fechaInicio:yyyy-MM-dd}&fechaFin={fechaFin:yyyy-MM-dd}";
+            movimientos = await Http.GetFromJsonAsync<List<MovimientoDto>>(url) ?? new List<MovimientoDto>();
+            StateHasChanged(); 
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Error al obtener los movimientos: {ex.Message}");
+        }
+    }
+}

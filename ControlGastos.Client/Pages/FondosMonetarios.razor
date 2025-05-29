@@ -1,0 +1,93 @@
+@page "/fondos-monetarios"  
+
+@inject HttpClient Http  
+@using Blazorise.Components  
+@using Blazorise.DataGrid  
+@using Blazorise.Bootstrap5  
+@using Blazorise.Icons.FontAwesome  
+@using Blazorise  
+@using ControlGastos.Core.DTOs  
+@using System.Net.Http.Json  
+
+<PageTitle>Fondos Monetarios</PageTitle>  
+
+<Heading Size="HeadingSize.Is3">Fondos Monetarios</Heading>  
+
+<DataGrid TItem="FondoMonetarioDto" Data="fondos" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">  
+    <DataGridColumns>  
+        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Id)" Caption="ID" />  
+        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Nombre)" Caption="Nombre" />  
+        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Tipo)" Caption="Tipo" />  
+        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Descripcion)" Caption="Descripción" />  
+        <DataGridCommandColumn TItem="FondoMonetarioDto" />  
+    </DataGridColumns>  
+</DataGrid>  
+
+<Modal @bind-Visible="modalVisible">  
+    <ModalHeader>@(editando ? "Editar Fondo Monetario" : "Nuevo Fondo Monetario")</ModalHeader>  
+    <ModalBody>  
+        <Validation @ref="validator">  
+            <TextEdit @bind-Text="fondoEdit.Nombre" Placeholder="Nombre" />  
+            <Select TValue="string" @bind-Value="fondoEdit.Tipo">  
+                <SelectItem Value="CuentaBancaria">Cuenta Bancaria</SelectItem>  
+                <SelectItem Value="CajaMenuda">Caja Menuda</SelectItem>  
+            </Select>  
+            <TextEdit @bind-Text="fondoEdit.Descripcion" Placeholder="Descripción" />  
+        </Validation>  
+    </ModalBody>  
+    <ModalFooter>  
+        <Button Color="Color.Primary" Clicked="GuardarFondoAsync">Guardar</Button>  
+        <Button Color="Color.Secondary" Clicked="()=>modalVisible=false">Cancelar</Button>  
+    </ModalFooter>  
+</Modal>  
+
+<Button Color="Color.Success" Clicked="NuevoFondo">Nuevo Fondo Monetario</Button>  
+
+@code {  
+    List<FondoMonetarioDto> fondos = new();  
+    FondoMonetarioDto fondoEdit = new();  
+    bool modalVisible = false;  
+    bool editando = false;  
+    Validations? validator;  
+
+    protected override async Task OnInitializedAsync()  
+    {  
+        await CargarFondosAsync();  
+    }  
+
+    async Task CargarFondosAsync()  
+    {  
+        fondos = await Http.GetFromJsonAsync<List<FondoMonetarioDto>>("api/FondoMonetario") ?? new();  
+    }  
+
+    void NuevoFondo()  
+    {  
+        fondoEdit = new FondoMonetarioDto();  
+        editando = false;  
+        modalVisible = true;  
+    }  
+
+    async Task GuardarFondoAsync()  
+    {  
+        if (validator is null || !await validator.ValidateAll()) return;  
+        if (editando)  
+            await Http.PutAsJsonAsync($"api/FondoMonetario/{fondoEdit.Id}", fondoEdit);  
+        else  
+            await Http.PostAsJsonAsync("api/FondoMonetario", fondoEdit);  
+        modalVisible = false;  
+        await CargarFondosAsync();  
+    }  
+
+    void EditFondo(FondoMonetarioDto fondo)  
+    {  
+        fondoEdit = new FondoMonetarioDto { Id = fondo.Id, Nombre = fondo.Nombre, Tipo = fondo.Tipo, Descripcion = fondo.Descripcion };  
+        editando = true;  
+        modalVisible = true;  
+    }  
+
+    async Task DeleteFondo(FondoMonetarioDto fondo)  
+    {  
+        await Http.DeleteAsync($"api/FondoMonetario/{fondo.Id}");  
+        await CargarFondosAsync();  
+    }  
+}

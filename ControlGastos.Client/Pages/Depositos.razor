@@ -1,0 +1,89 @@
+@page "/depositos"
+@inject HttpClient Http
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Blazorise.Bootstrap5
+@using Blazorise.Icons.FontAwesome
+@using ControlGastos.Core.DTOs
+@using System.Net.Http.Json
+
+<PageTitle>Depósitos</PageTitle>
+
+<Heading Size="HeadingSize.Is3">Depósitos</Heading>
+
+<DataGrid TItem="DepositoDto" Data="depositos" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
+    <DataGridColumns>
+        <DataGridColumn TItem="DepositoDto" Field="@nameof(DepositoDto.Id)" Caption="ID" />
+        <DataGridColumn TItem="DepositoDto" Field="@nameof(DepositoDto.Fecha)" Caption="Fecha" />
+        <DataGridColumn TItem="DepositoDto" Field="@nameof(DepositoDto.FondoMonetarioNombre)" Caption="Fondo Monetario" />
+        <DataGridColumn TItem="DepositoDto" Field="@nameof(DepositoDto.Monto)" Caption="Monto" />
+        <DataGridCommandColumn TItem="DepositoDto" />
+    </DataGridColumns>
+</DataGrid>
+
+<Modal @bind-Visible="modalVisible">
+    <ModalHeader>@(editando ? "Editar Depósito" : "Nuevo Depósito")</ModalHeader>
+    <ModalBody>
+        <Validation Validator="validator">
+            <DateEdit @bind-Date="depositoEdit.Fecha" Placeholder="Fecha" />
+            <TextEdit @bind-Text="depositoEdit.FondoMonetarioNombre" Placeholder="Fondo Monetario" />
+            <NumericEdit @bind-Value="depositoEdit.Monto" Placeholder="Monto" />
+        </Validation>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="GuardarDepositoAsync">Guardar</Button>
+        <Button Color="Color.Secondary" Clicked="()=>modalVisible=false">Cancelar</Button>
+    </ModalFooter>
+</Modal>
+
+<Button Color="Color.Success" Clicked="NuevoDeposito">Nuevo Depósito</Button>
+
+@code {
+    List<DepositoDto> depositos = new();
+    DepositoDto depositoEdit = new();
+    bool modalVisible = false;
+    bool editando = false;
+    Validations? validator;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDepositosAsync();
+    }
+
+    async Task CargarDepositosAsync()
+    {
+        depositos = await Http.GetFromJsonAsync<List<DepositoDto>>("api/Depositos") ?? new();
+    }
+
+    void NuevoDeposito()
+    {
+        depositoEdit = new DepositoDto();
+        editando = false;
+        modalVisible = true;
+    }
+
+    async Task GuardarDepositoAsync()
+    {
+        if (validator is null || !await validator.ValidateAll()) return;
+        if (editando)
+            await Http.PutAsJsonAsync($"api/Depositos/{depositoEdit.Id}", depositoEdit);
+        else
+            await Http.PostAsJsonAsync("api/Depositos", depositoEdit);
+        modalVisible = false;
+        await CargarDepositosAsync();
+    }
+
+    void EditDeposito(DepositoDto deposito)
+    {
+        depositoEdit = new DepositoDto { Id = deposito.Id, Fecha = deposito.Fecha, FondoMonetarioNombre = deposito.FondoMonetarioNombre, Monto = deposito.Monto };
+        editando = true;
+        modalVisible = true;
+    }
+
+    async Task DeleteDeposito(DepositoDto deposito)
+    {
+        await Http.DeleteAsync($"api/Depositos/{deposito.Id}");
+        await CargarDepositosAsync();
+    }
+}
