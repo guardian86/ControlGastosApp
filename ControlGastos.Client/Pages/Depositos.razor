@@ -19,11 +19,30 @@
 <Modal @bind-Visible="modalVisible">
     <ModalHeader>@(editando ? "Editar Depósito" : "Nuevo Depósito")</ModalHeader>
     <ModalBody>
-        <Validations Validator="validator">
-            <DateEdit @bind-Date="depositoEdit.Fecha" Placeholder="Fecha" />
-            <TextEdit @bind-Text="depositoEdit.FondoMonetarioNombre" Placeholder="Fondo Monetario" />
-            <NumericEdit @bind-Value="depositoEdit.Monto" Placeholder="Monto" />
+        <Validations @ref="validator" Model="depositoEdit">
+            <Validator For="@(() => depositoEdit.Fecha)">
+                <Field>
+                    <FieldLabel>Fecha</FieldLabel>
+                    <DateEdit @bind-Date="depositoEdit.Fecha" Placeholder="Fecha" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+            <Validator For="@(() => depositoEdit.FondoMonetarioNombre)">
+                <Field>
+                    <FieldLabel>Fondo Monetario</FieldLabel>
+                    <TextEdit @bind-Text="depositoEdit.FondoMonetarioNombre" Placeholder="Fondo Monetario" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+            <Validator For="@(() => depositoEdit.Monto)">
+                <Field>
+                    <FieldLabel>Monto</FieldLabel>
+                    <NumericEdit @bind-Value="depositoEdit.Monto" Placeholder="Monto" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
         </Validations>
+        <Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
     </ModalBody>
     <ModalFooter>
         <Button Color="Color.Primary" Clicked="GuardarDepositoAsync">Guardar</Button>
@@ -39,6 +58,7 @@
     bool modalVisible = false;
     bool editando = false;
     Validations? validator;
+    string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -59,13 +79,28 @@
 
     async Task GuardarDepositoAsync()
     {
+        errorMessage = null;
         if (validator is null || !await validator.ValidateAll()) return;
-        if (editando)
-            await Http.PutAsJsonAsync($"api/Depositos/{depositoEdit.Id}", depositoEdit);
-        else
-            await Http.PostAsJsonAsync("api/Depositos", depositoEdit);
-        modalVisible = false;
-        await CargarDepositosAsync();
+        try
+        {
+            HttpResponseMessage response;
+            if (editando)
+                response = await Http.PutAsJsonAsync($"api/Depositos/{depositoEdit.Id}", depositoEdit);
+            else
+                response = await Http.PostAsJsonAsync("api/Depositos", depositoEdit);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Error al guardar: {error}";
+                return;
+            }
+            modalVisible = false;
+            await CargarDepositosAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error inesperado: {ex.Message}";
+        }
     }
 
     void EditDeposito(DepositoDto deposito)

@@ -1,3 +1,4 @@
+using AutoMapper;
 using ControlGastos.Application.Services;
 using ControlGastos.Core.Interfaces.Repositories;
 using ControlGastos.Core.Interfaces.Services;
@@ -60,7 +61,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-//builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddAutoMapper(typeof(ControlGastos.API.MappingProfile));
 
 var app = builder.Build();
 
@@ -79,5 +80,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+DbInitializer.SeedAdminUser(app.Services);
 
 app.Run();

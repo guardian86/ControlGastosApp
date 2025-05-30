@@ -15,19 +15,25 @@
     </DataGridColumns>
 </DataGrid>
 
-<Modal @bind-Visible="modalVisible">
-    <ModalHeader>@(editando ? "Editar Tipo de Gasto" : "Nuevo Tipo de Gasto")</ModalHeader>
-    <ModalBody>
-        <Validations @ref="validator">
-            <TextEdit @bind-Text="tipoGastoEdit.Nombre" Placeholder="Nombre" />
-            <TextEdit @bind-Text="tipoGastoEdit.Descripcion" Placeholder="Descripción" />
-        </Validations>
-    </ModalBody>
-    <ModalFooter>
-        <Button Color="Color.Primary" Clicked="GuardarTipoGastoAsync">Guardar</Button>
-        <Button Color="Color.Secondary" Clicked="()=>modalVisible=false">Cancelar</Button>
-    </ModalFooter>
-</Modal>
+<ModalBody>
+    <Validations @ref="validator" Model="tipoGastoEdit">
+        <Validator For="@(() => tipoGastoEdit.Nombre)">
+            <Field>
+                <FieldLabel>Nombre</FieldLabel>
+                <TextEdit @bind-Text="tipoGastoEdit.Nombre" Placeholder="Nombre del tipo de gasto" />
+                <ValidationMessage />
+            </Field>
+        </Validator>
+        <Validator For="@(() => tipoGastoEdit.Descripcion)">
+            <Field>
+                <FieldLabel>Descripción</FieldLabel>
+                <TextEdit @bind-Text="tipoGastoEdit.Descripcion" Placeholder="Descripción (opcional)" />
+                <ValidationMessage />
+            </Field>
+        </Validator>
+    </Validations>
+    <Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
+</ModalBody>
 
 <Button Color="Color.Success" Clicked="NuevoTipoGasto">Nuevo Tipo de Gasto</Button>
 
@@ -37,6 +43,7 @@
     bool modalVisible = false;
     bool editando = false;
     Validations? validator;
+    string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -57,13 +64,28 @@
 
     async Task GuardarTipoGastoAsync()
     {
+        errorMessage = null;
         if (validator is null || !await validator.ValidateAll()) return;
-        if (editando)
-            await Http.PutAsJsonAsync($"api/TipoGasto/{tipoGastoEdit.Id}", tipoGastoEdit);
-        else
-            await Http.PostAsJsonAsync("api/TipoGasto", tipoGastoEdit);
-        modalVisible = false;
-        await CargarTiposGastoAsync();
+        try
+        {
+            HttpResponseMessage response;
+            if (editando)
+                response = await Http.PutAsJsonAsync($"api/TipoGasto/{tipoGastoEdit.Id}", tipoGastoEdit);
+            else
+                response = await Http.PostAsJsonAsync("api/TipoGasto", tipoGastoEdit);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Error al guardar: {error}";
+                return;
+            }
+            modalVisible = false;
+            await CargarTiposGastoAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error inesperado: {ex.Message}";
+        }
     }
 
     void EditTipoGasto(TipoGastoDto tipo)

@@ -22,12 +22,42 @@
 <Modal @bind-Visible="modalVisible">
     <ModalHeader>@(editando ? "Editar Gasto" : "Nuevo Gasto")</ModalHeader>
     <ModalBody>
-        <Validations Validator="validator">
-            <DateEdit @bind-Date="gastoEdit.Fecha" Placeholder="Fecha" />
-            <TextEdit @bind-Text="gastoEdit.FondoMonetarioNombre" Placeholder="Fondo Monetario" />
-            <TextEdit @bind-Text="gastoEdit.Observaciones" Placeholder="Observaciones" />
-            <TextEdit @bind-Text="gastoEdit.NombreComercio" Placeholder="Nombre de Comercio" />
-            <TextEdit @bind-Text="gastoEdit.TipoDocumento" Placeholder="Tipo de Documento" />
+        <Validations @ref="validator" Model="gastoEdit">
+            <Validator For="@(() => gastoEdit.Fecha)">
+                <Field>
+                    <FieldLabel>Fecha</FieldLabel>
+                    <DateEdit @bind-Date="gastoEdit.Fecha" Placeholder="Fecha" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+            <Validator For="@(() => gastoEdit.FondoMonetarioNombre)">
+                <Field>
+                    <FieldLabel>Fondo Monetario</FieldLabel>
+                    <TextEdit @bind-Text="gastoEdit.FondoMonetarioNombre" Placeholder="Fondo Monetario" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+            <Validator For="@(() => gastoEdit.Observaciones)">
+                <Field>
+                    <FieldLabel>Observaciones</FieldLabel>
+                    <TextEdit @bind-Text="gastoEdit.Observaciones" Placeholder="Observaciones" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+            <Validator For="@(() => gastoEdit.NombreComercio)">
+                <Field>
+                    <FieldLabel>Nombre de Comercio</FieldLabel>
+                    <TextEdit @bind-Text="gastoEdit.NombreComercio" Placeholder="Nombre de Comercio" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+            <Validator For="@(() => gastoEdit.TipoDocumento)">
+                <Field>
+                    <FieldLabel>Tipo de Documento</FieldLabel>
+                    <TextEdit @bind-Text="gastoEdit.TipoDocumento" Placeholder="Tipo de Documento" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
             <Heading Size="HeadingSize.Is5">Detalle de Gastos</Heading>
             <DataGrid TItem="GastoDetalleDto" Data="gastoEdit.Detalles" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
                 <DataGridColumns>
@@ -38,6 +68,7 @@
             </DataGrid>
             <Button Color="Color.Info" Clicked="AgregarDetalle">Agregar Detalle</Button>
         </Validations>
+        <Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
     </ModalBody>
     <ModalFooter>
         <Button Color="Color.Primary" Clicked="GuardarGastoAsync">Guardar</Button>
@@ -72,6 +103,7 @@
     bool modalDetalleVisible = false;
     Validations? detalleValidator;
     GastoDetalleDto detalleEdit = new();
+    string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -92,14 +124,28 @@
 
     async Task GuardarGastoAsync()
     {
+        errorMessage = null;
         if (validator is null || !await validator.ValidateAll()) return;
-        // Validar sobregiro de presupuesto aquí si es necesario
-        if (editando)
-            await Http.PutAsJsonAsync($"api/GastoEncabezado/{gastoEdit.Id}", gastoEdit);
-        else
-            await Http.PostAsJsonAsync("api/GastoEncabezado", gastoEdit);
-        modalVisible = false;
-        await CargarGastosAsync();
+        try
+        {
+            HttpResponseMessage response;
+            if (editando)
+                response = await Http.PutAsJsonAsync($"api/GastoEncabezado/{gastoEdit.Id}", gastoEdit);
+            else
+                response = await Http.PostAsJsonAsync("api/GastoEncabezado", gastoEdit);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Error al guardar: {error}";
+                return;
+            }
+            modalVisible = false;
+            await CargarGastosAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error inesperado: {ex.Message}";
+        }
     }
 
     void EditGasto(GastoEncabezadoDto gasto)

@@ -12,6 +12,8 @@
     <Button Color="Color.Primary" OnClick="BuscarMovimientos">Buscar</Button>
 </Validations>
 
+<Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
+
 <DataGrid TItem="MovimientoDto" Data="@movimientos" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
     <DataGridColumns>
         <DataGridColumn TItem="MovimientoDto" Field="@nameof(MovimientoDto.Tipo)" Caption="Tipo" />
@@ -29,24 +31,35 @@
     private DateTime fechaFin = DateTime.Today;
     private List<MovimientoDto> movimientos = new();
     private Validations? validator;
+    private string? errorMessage;
 
     private async Task BuscarMovimientos()
     {
-        if (validator is null) 
-            throw new InvalidOperationException("El validador no está inicializado.");
-
-        if (!await validator.ValidateAll()) 
+        errorMessage = null;
+        if (validator is null)
+        {
+            errorMessage = "El validador no está inicializado.";
             return;
-
+        }
+        if (!await validator.ValidateAll())
+            return;
         try
         {
             var url = $"api/Movimientos?fechaInicio={fechaInicio:yyyy-MM-dd}&fechaFin={fechaFin:yyyy-MM-dd}";
             movimientos = await Http.GetFromJsonAsync<List<MovimientoDto>>(url) ?? new List<MovimientoDto>();
-            StateHasChanged(); 
+            StateHasChanged();
         }
         catch (HttpRequestException ex)
         {
-            Console.WriteLine($"Error al obtener los movimientos: {ex.Message}");
+            errorMessage = $"Error al obtener los movimientos: {ex.Message}";
+        }
+        catch (System.Text.Json.JsonException ex)
+        {
+            errorMessage = $"Error de formato de datos: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error inesperado: {ex.Message}";
         }
     }
 }

@@ -13,6 +13,7 @@ namespace ControlGastos.Infrastructure.Data
         public DbSet<Deposito> Depositos { get; set; }
         public DbSet<GastoEncabezado> GastoEncabezados { get; set; }
         public DbSet<GastoDetalle> GastoDetalles { get; set; }
+        public DbSet<Usuario> Usuarios { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

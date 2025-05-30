@@ -16,22 +16,41 @@
     </DataGridColumns>  
 </DataGrid>  
 
-<Modal @bind-Visible="modalVisible">  
-    <ModalHeader>@(editando ? "Editar Fondo Monetario" : "Nuevo Fondo Monetario")</ModalHeader>  
-    <ModalBody>  
-        <Validations @ref="validator">
-            <TextEdit @bind-Text="fondoEdit.Nombre" Placeholder="Nombre" />  
-            <Select TValue="string" @bind-Value="fondoEdit.Tipo">  
-                <SelectItem Value="1">Cuenta Bancaria</SelectItem>  
-                <SelectItem Value="2">Caja Menuda</SelectItem>  
-            </Select>  
-            <TextEdit @bind-Text="fondoEdit.Descripcion" Placeholder="Descripción" />  
-        </Validations>  
-    </ModalBody>  
-    <ModalFooter>  
-        <Button Color="Color.Primary" Clicked="GuardarFondoAsync">Guardar</Button>  
-        <Button Color="Color.Secondary" Clicked="()=>modalVisible=false">Cancelar</Button>  
-    </ModalFooter>  
+<Modal @bind-Visible="modalVisible">
+    <ModalHeader>@(editando ? "Editar Fondo Monetario" : "Nuevo Fondo Monetario")</ModalHeader>
+    <ModalBody>
+        <Validations @ref="validator" Model="fondoEdit">
+            <Validator For="@(() => fondoEdit.Nombre)">
+                <Field>
+                    <FieldLabel>Nombre</FieldLabel>
+                    <TextEdit @bind-Text="fondoEdit.Nombre" Placeholder="Nombre" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+            <Validator For="@(() => fondoEdit.Tipo)">
+                <Field>
+                    <FieldLabel>Tipo</FieldLabel>
+                    <Select TValue="string" @bind-Value="fondoEdit.Tipo">
+                        <SelectItem Value="CuentaBancaria">Cuenta Bancaria</SelectItem>
+                        <SelectItem Value="CajaMenuda">Caja Menuda</SelectItem>
+                    </Select>
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+            <Validator For="@(() => fondoEdit.Descripcion)">
+                <Field>
+                    <FieldLabel>Descripción</FieldLabel>
+                    <TextEdit @bind-Text="fondoEdit.Descripcion" Placeholder="Descripción" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+        </Validations>
+        <Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="GuardarFondoAsync">Guardar</Button>
+        <Button Color="Color.Secondary" Clicked="()=>modalVisible=false">Cancelar</Button>
+    </ModalFooter>
 </Modal>  
 
 <Button Color="Color.Success" Clicked="NuevoFondo">Nuevo Fondo Monetario</Button>  
@@ -42,6 +61,7 @@
     bool modalVisible = false;  
     bool editando = false;  
     Validations? validator;  
+    string? errorMessage;
 
     protected override async Task OnInitializedAsync()  
     {  
@@ -62,13 +82,28 @@
 
     async Task GuardarFondoAsync()  
     {  
+        errorMessage = null;
         if (validator is null || !await validator.ValidateAll()) return;  
-        if (editando)  
-            await Http.PutAsJsonAsync($"api/FondoMonetario/{fondoEdit.Id}", fondoEdit);  
-        else  
-            await Http.PostAsJsonAsync("api/FondoMonetario", fondoEdit);  
-        modalVisible = false;  
-        await CargarFondosAsync();  
+        try  
+        {  
+            HttpResponseMessage response;  
+            if (editando)  
+                response = await Http.PutAsJsonAsync($"api/FondoMonetario/{fondoEdit.Id}", fondoEdit);  
+            else  
+                response = await Http.PostAsJsonAsync("api/FondoMonetario", fondoEdit);  
+            if (!response.IsSuccessStatusCode)  
+            {  
+                var error = await response.Content.ReadAsStringAsync();  
+                errorMessage = $"Error al guardar: {error}";  
+                return;  
+            }  
+            modalVisible = false;  
+            await CargarFondosAsync();  
+        }  
+        catch (Exception ex)  
+        {  
+            errorMessage = $"Error inesperado: {ex.Message}";  
+        }  
     }  
 
     void EditFondo(FondoMonetarioDto fondo)  
