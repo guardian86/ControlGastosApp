@@ -1,38 +1,53 @@
-﻿using ControlGastos.Core.Entities;
-using ControlGastos.Core.Interfaces.Repositories;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using ControlGastos.Core.Entities;
+using ControlGastos.Core.Interfaces.Repositories;
+using ControlGastos.Infrastructure.Data;
 
 namespace ControlGastos.Infrastructure.Repositories
 {
     public class FondoMonetarioRepository : IFondoMonetarioRepository
     {
-        public Task AddAsync(FondoMonetario entity)
+        private readonly ApplicationDbContext _context;
+
+        public FondoMonetarioRepository(ApplicationDbContext context)
         {
-            throw new NotImplementedException();
+            _context = context;
         }
 
-        public Task DeleteAsync(int id)
+        public async Task AddAsync(FondoMonetario entity)
         {
-            throw new NotImplementedException();
+            await _context.FondosMonetarios.AddAsync(entity);
+            await _context.SaveChangesAsync();
         }
 
-        public Task<IEnumerable<FondoMonetario>> GetAllAsync()
+        public async Task DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var entity = await GetByIdAsync(id);
+            if (entity != null)
+            {
+                _context.FondosMonetarios.Remove(entity);
+                await _context.SaveChangesAsync();
+            }
         }
 
-        public Task<FondoMonetario> GetByIdAsync(int id)
+        public async Task<IEnumerable<FondoMonetario>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _context.FondosMonetarios.ToListAsync();
         }
 
-        public Task UpdateAsync(FondoMonetario entity)
+        public async Task<FondoMonetario?> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.FondosMonetarios.FindAsync(id);
+        }
+
+        public async Task UpdateAsync(FondoMonetario entity)
+        {
+            _context.FondosMonetarios.Update(entity);
+            await _context.SaveChangesAsync();
         }
     }
 }

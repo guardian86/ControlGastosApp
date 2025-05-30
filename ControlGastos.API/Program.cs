@@ -1,7 +1,7 @@
-using ControlGastos.API.Data;
 using ControlGastos.Application.Services;
 using ControlGastos.Core.Interfaces.Repositories;
 using ControlGastos.Core.Interfaces.Services;
+using ControlGastos.Infrastructure.Data;
 using ControlGastos.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

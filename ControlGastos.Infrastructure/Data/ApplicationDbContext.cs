@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ControlGastos.Core.Entities;
 
-namespace ControlGastos.API.Data
+namespace ControlGastos.Infrastructure.Data
 {
     public class ApplicationDbContext : DbContext
     {

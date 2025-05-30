@@ -1,17 +1,58 @@
+// En ControlGastos.Infrastructure/Repositories/GastoDetalleRepository.cs
 using ControlGastos.Core.Entities;
 using ControlGastos.Core.Interfaces.Repositories;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using ControlGastos.Infrastructure.Data; // Asegúrate que este es el namespace de tu DbContext
+using Microsoft.EntityFrameworkCore;
 
 namespace ControlGastos.Infrastructure.Repositories
 {
     public class GastoDetalleRepository : IGastoDetalleRepository
     {
-        // Implementación pendiente: usar DbContext para acceso a datos
-        public Task<GastoDetalle> GetByIdAsync(int id) => throw new System.NotImplementedException();
-        public Task<IEnumerable<GastoDetalle>> GetByGastoEncabezadoIdAsync(int encabezadoId) => throw new System.NotImplementedException();
-        public Task AddAsync(GastoDetalle entity) => throw new System.NotImplementedException();
-        public Task UpdateAsync(GastoDetalle entity) => throw new System.NotImplementedException();
-        public Task DeleteAsync(int id) => throw new System.NotImplementedException();
+        private readonly ApplicationDbContext _context;
+
+        
+        public GastoDetalleRepository(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        
+        public async Task<GastoDetalle?> GetByIdAsync(int id)
+        {
+            return await _context.GastoDetalles.FindAsync(id);
+        }
+
+        public async Task<IEnumerable<GastoDetalle>> GetByGastoEncabezadoIdAsync(int encabezadoId)
+        {
+
+            return await _context.GastoDetalles
+                                 .Where(d => d.GastoEncabezadoId == encabezadoId)
+                                 .ToListAsync();
+        }
+
+        public async Task AddAsync(GastoDetalle entity)
+        {
+            await _context.GastoDetalles.AddAsync(entity);
+        }
+
+        public Task UpdateAsync(GastoDetalle entity)
+        {
+            
+            _context.GastoDetalles.Update(entity);
+            
+            return Task.CompletedTask;
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            
+            var entity = await GetByIdAsync(id);
+            if (entity != null)
+            {
+                
+                _context.GastoDetalles.Remove(entity);
+                
+            }
+        }
     }
 }
