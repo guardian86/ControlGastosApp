@@ -1,13 +1,6 @@
 @page "/fondos-monetarios"  
-
 @inject HttpClient Http  
-@using Blazorise.Components  
-@using Blazorise.DataGrid  
-@using Blazorise.Bootstrap5  
-@using Blazorise.Icons.FontAwesome  
-@using Blazorise  
-@using ControlGastos.Core.DTOs  
-@using System.Net.Http.Json  
+
 
 <PageTitle>Fondos Monetarios</PageTitle>  
 
@@ -26,14 +19,14 @@
 <Modal @bind-Visible="modalVisible">  
     <ModalHeader>@(editando ? "Editar Fondo Monetario" : "Nuevo Fondo Monetario")</ModalHeader>  
     <ModalBody>  
-        <Validation @ref="validator">  
+        <Validations @ref="validator">
             <TextEdit @bind-Text="fondoEdit.Nombre" Placeholder="Nombre" />  
             <Select TValue="string" @bind-Value="fondoEdit.Tipo">  
-                <SelectItem Value="CuentaBancaria">Cuenta Bancaria</SelectItem>  
-                <SelectItem Value="CajaMenuda">Caja Menuda</SelectItem>  
+                <SelectItem Value="1">Cuenta Bancaria</SelectItem>  
+                <SelectItem Value="2">Caja Menuda</SelectItem>  
             </Select>  
             <TextEdit @bind-Text="fondoEdit.Descripcion" Placeholder="Descripción" />  
-        </Validation>  
+        </Validations>  
     </ModalBody>  
     <ModalFooter>  
         <Button Color="Color.Primary" Clicked="GuardarFondoAsync">Guardar</Button>  

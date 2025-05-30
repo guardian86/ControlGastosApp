@@ -16,6 +16,7 @@ namespace ControlGastos.API.Controllers
             _service = service;
         }
 
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Deposito>> Get(int id)
         {
@@ -23,6 +24,7 @@ namespace ControlGastos.API.Controllers
             if (deposito == null) return NotFound();
             return Ok(deposito);
         }
+
 
         [HttpGet("fondo/{fondoId}")]
         public async Task<ActionResult<IEnumerable<Deposito>>> GetByFondo(int fondoId)
@@ -52,5 +54,7 @@ namespace ControlGastos.API.Controllers
             await _service.DeleteAsync(id);
             return NoContent();
         }
+
+
     }
 }

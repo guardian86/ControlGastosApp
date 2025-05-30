@@ -1,8 +1,6 @@
 @page "/gastos"
 @inject HttpClient Http
-@using Blazorise
-@using ControlGastos.Core.DTOs
-@using System.Net.Http.Json
+
 
 <PageTitle>Registros de Gastos</PageTitle>
 
@@ -24,7 +22,7 @@
 <Modal @bind-Visible="modalVisible">
     <ModalHeader>@(editando ? "Editar Gasto" : "Nuevo Gasto")</ModalHeader>
     <ModalBody>
-        <Validation Validator="validator">
+        <Validations Validator="validator">
             <DateEdit @bind-Date="gastoEdit.Fecha" Placeholder="Fecha" />
             <TextEdit @bind-Text="gastoEdit.FondoMonetarioNombre" Placeholder="Fondo Monetario" />
             <TextEdit @bind-Text="gastoEdit.Observaciones" Placeholder="Observaciones" />
@@ -39,7 +37,7 @@
                 </DataGridColumns>
             </DataGrid>
             <Button Color="Color.Info" Clicked="AgregarDetalle">Agregar Detalle</Button>
-        </Validation>
+        </Validations>
     </ModalBody>
     <ModalFooter>
         <Button Color="Color.Primary" Clicked="GuardarGastoAsync">Guardar</Button>
@@ -50,10 +48,10 @@
 <Modal @bind-Visible="modalDetalleVisible">
     <ModalHeader>Agregar Detalle</ModalHeader>
     <ModalBody>
-        <Validation Validator="detalleValidator">
+        <Validations Validator="detalleValidator">
             <TextEdit @bind-Text="detalleEdit.TipoGastoNombre" Placeholder="Tipo de Gasto" />
             <NumericEdit @bind-Value="detalleEdit.Monto" Placeholder="Monto" />
-        </Validation>
+        </Validations>
     </ModalBody>
     <ModalFooter>
         <Button Color="Color.Primary" Clicked="ConfirmarDetalle">Agregar</Button>

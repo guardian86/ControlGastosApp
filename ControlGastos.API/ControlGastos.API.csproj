@@ -17,13 +17,16 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.5" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="3.9.2" />
+    <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.9.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="8.1.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="8.1.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ControlGastos.Application\ControlGastos.Application.csproj" />
     <ProjectReference Include="..\ControlGastos.Core\ControlGastos.Core.csproj" />
+    <ProjectReference Include="..\ControlGastos.Infrastructure\ControlGastos.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

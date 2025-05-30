@@ -1,22 +1,16 @@
 @page "/graficos"
 @inject HttpClient Http
-@using Blazorise.Components
-@using Blazorise.Charts
-@using Blazorise.Bootstrap5
-@using Blazorise.Icons.FontAwesome
-@using Blazorise
-@using ControlGastos.Core.DTOs
-@using System.Net.Http.Json
+
 
 <PageTitle>Gráfico Comparativo de Presupuesto y Ejecución</PageTitle>
 
 <Heading Size="HeadingSize.Is3">Gráfico Comparativo de Presupuesto y Ejecución</Heading>
 
-<Validation Validator="validator">
+<Validations Validator="validator">
     <DateEdit @bind-Date="fechaInicio" Placeholder="Fecha Inicio" />
     <DateEdit @bind-Date="fechaFin" Placeholder="Fecha Fin" />
     <Button Color="Color.Primary" Clicked="BuscarGrafico">Buscar</Button>
-</Validation>
+</Validations>
 
 <BarChart TItem="decimal" @ref="barChart" Options="chartOptions" Data="chartData" />
 

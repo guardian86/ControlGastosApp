@@ -1,12 +1,6 @@
 @page "/depositos"
 @inject HttpClient Http
-@using Blazorise
-@using Blazorise.Components
-@using Blazorise.DataGrid
-@using Blazorise.Bootstrap5
-@using Blazorise.Icons.FontAwesome
-@using ControlGastos.Core.DTOs
-@using System.Net.Http.Json
+
 
 <PageTitle>Depósitos</PageTitle>
 
@@ -25,11 +19,11 @@
 <Modal @bind-Visible="modalVisible">
     <ModalHeader>@(editando ? "Editar Depósito" : "Nuevo Depósito")</ModalHeader>
     <ModalBody>
-        <Validation Validator="validator">
+        <Validations Validator="validator">
             <DateEdit @bind-Date="depositoEdit.Fecha" Placeholder="Fecha" />
             <TextEdit @bind-Text="depositoEdit.FondoMonetarioNombre" Placeholder="Fondo Monetario" />
             <NumericEdit @bind-Value="depositoEdit.Monto" Placeholder="Monto" />
-        </Validation>
+        </Validations>
     </ModalBody>
     <ModalFooter>
         <Button Color="Color.Primary" Clicked="GuardarDepositoAsync">Guardar</Button>

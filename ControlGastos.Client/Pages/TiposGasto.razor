@@ -1,8 +1,5 @@
 @page "/tipos-gasto"
 @inject HttpClient Http
-@using Blazorise
-@using ControlGastos.Core.DTOs
-@using System.Net.Http.Json
 
 <PageTitle>Tipos de Gasto</PageTitle>
 
@@ -21,10 +18,10 @@
 <Modal @bind-Visible="modalVisible">
     <ModalHeader>@(editando ? "Editar Tipo de Gasto" : "Nuevo Tipo de Gasto")</ModalHeader>
     <ModalBody>
-        <Validation @ref="validator">
+        <Validations @ref="validator">
             <TextEdit @bind-Text="tipoGastoEdit.Nombre" Placeholder="Nombre" />
             <TextEdit @bind-Text="tipoGastoEdit.Descripcion" Placeholder="Descripción" />
-        </Validation>
+        </Validations>
     </ModalBody>
     <ModalFooter>
         <Button Color="Color.Primary" Clicked="GuardarTipoGastoAsync">Guardar</Button>

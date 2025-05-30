@@ -1,24 +1,16 @@
 @page "/movimientos"
 @inject HttpClient Http
-@using Blazorise
-@using Blazorise.Components
-@using Blazorise.DataGrid
-@using Blazorise.Bootstrap5
-@using Blazorise.Icons.FontAwesome
-@using ControlGastos.Core.DTOs
-@using System.Net.Http.Json
-@* @using System.Collections.Generic
-@using ControlGastos.Core.DTOs *@
+
 
 <PageTitle>Consulta de Movimientos</PageTitle>
 
 <Heading Size="HeadingSize.Is3">Consulta de Movimientos</Heading>
 
-<Validation Validator="@validator">
+<Validations Validator="@validator">
     <DateEdit @bind-Date="fechaInicio" Placeholder="Fecha Inicio" />
     <DateEdit @bind-Date="fechaFin" Placeholder="Fecha Fin" />
     <Button Color="Color.Primary" OnClick="BuscarMovimientos">Buscar</Button>
-</Validation>
+</Validations>
 
 <DataGrid TItem="MovimientoDto" Data="@movimientos" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
     <DataGridColumns>
