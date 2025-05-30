@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using ControlGastos.Application.Services;
 using ControlGastos.Core.Interfaces.Repositories;
 using ControlGastos.Core.Entities;
@@ -12,65 +13,77 @@ namespace ControlGastos.Test
     [TestClass]
     public class DepositoServiceTests
     {
+        
         [TestMethod]
-        public void ObtenerTodos_DeberiaRetornarListaDeDepositos()
+        public async Task GetByIdAsync_ShouldReturnDeposito()
+        {
+            var deposito = new Deposito { Id = 1, Fecha = System.DateTime.Today, FondoMonetarioId = 2, Monto = 500m };
+            var repoMock = new Mock<IDepositoRepository>();
+            repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(deposito);
+            var service = new DepositoService(repoMock.Object);
+
+            var resultado = await service.GetByIdAsync(1);
+
+            Assert.IsNotNull(resultado);
+            Assert.AreEqual(1, resultado.Id);
+            Assert.AreEqual(500m, resultado.Monto);
+        }
+
+        [TestMethod]
+        public async Task GetByFondoMonetarioIdAsync_ShouldReturnDepositos()
         {
             var depositos = new List<Deposito>
             {
-                new { Id = 1, Monto = 500m, Descripcion = "Depósito inicial" },
-                new { Id = 2, Monto = 200m, Descripcion = "Depósito extra" }
+                new Deposito { Id = 1, Fecha = System.DateTime.Today, FondoMonetarioId = 2, Monto = 500m },
+                new Deposito { Id = 2, Fecha = System.DateTime.Today, FondoMonetarioId = 2, Monto = 200m }
             };
             var repoMock = new Mock<IDepositoRepository>();
-            repoMock.Setup(r => r.ObtenerTodos()).Returns(depositos);
+            repoMock.Setup(r => r.GetByFondoMonetarioIdAsync(2)).ReturnsAsync(depositos);
             var service = new DepositoService(repoMock.Object);
 
-            var resultado = service.ObtenerTodos();
+            var resultado = await service.GetByFondoMonetarioIdAsync(2);
 
             Assert.IsNotNull(resultado);
             Assert.AreEqual(2, resultado.Count());
-            Assert.AreEqual(500m, resultado.First().Monto);
         }
 
         [TestMethod]
-        public void Crear_ConDatosValidos_DeberiaCrearCorrectamente()
+        public async Task AddAsync_ShouldCallRepository()
         {
-            var nuevo = new { Monto = 100m, Descripcion = "Depósito ahorro" };
+            var deposito = new Deposito { Id = 0, Fecha = System.DateTime.Today, FondoMonetarioId = 2, Monto = 100m };
             var repoMock = new Mock<IDepositoRepository>();
-            repoMock.Setup(r => r.Crear(It.IsAny<object>())).Returns(1);
+            repoMock.Setup(r => r.AddAsync(deposito)).Returns(Task.CompletedTask);
             var service = new DepositoService(repoMock.Object);
 
-            var idCreado = service.Crear(nuevo);
+            await service.AddAsync(deposito);
 
-            Assert.AreEqual(1, idCreado);
-            repoMock.Verify(r => r.Crear(It.IsAny<object>()), Times.Once);
+            repoMock.Verify(r => r.AddAsync(deposito), Times.Once);
         }
 
         [TestMethod]
-        public void Actualizar_DeberiaActualizarCorrectamente()
+        public async Task UpdateAsync_ShouldCallRepository()
         {
-            var existente = new { Id = 1, Monto = 600m, Descripcion = "Depósito inicial modificado" };
+            var deposito = new Deposito { Id = 1, Fecha = System.DateTime.Today, FondoMonetarioId = 2, Monto = 600m };
             var repoMock = new Mock<IDepositoRepository>();
-            repoMock.Setup(r => r.Actualizar(existente)).Returns(true);
+            repoMock.Setup(r => r.UpdateAsync(deposito)).Returns(Task.CompletedTask);
             var service = new DepositoService(repoMock.Object);
 
-            var actualizado = service.Actualizar(existente);
+            await service.UpdateAsync(deposito);
 
-            Assert.IsTrue(actualizado);
-            repoMock.Verify(r => r.Actualizar(existente), Times.Once);
+            repoMock.Verify(r => r.UpdateAsync(deposito), Times.Once);
         }
 
         [TestMethod]
-        public void Eliminar_DeberiaEliminarCorrectamente()
+        public async Task DeleteAsync_ShouldCallRepository()
         {
             int idEliminar = 1;
             var repoMock = new Mock<IDepositoRepository>();
-            repoMock.Setup(r => r.Eliminar(idEliminar)).Returns(true);
+            repoMock.Setup(r => r.DeleteAsync(idEliminar)).Returns(Task.CompletedTask);
             var service = new DepositoService(repoMock.Object);
 
-            var eliminado = service.Eliminar(idEliminar);
+            await service.DeleteAsync(idEliminar);
 
-            Assert.IsTrue(eliminado);
-            repoMock.Verify(r => r.Eliminar(idEliminar), Times.Once);
+            repoMock.Verify(r => r.DeleteAsync(idEliminar), Times.Once);
         }
     }
 }

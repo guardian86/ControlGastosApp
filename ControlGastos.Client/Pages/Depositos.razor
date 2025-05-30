@@ -16,39 +16,22 @@
     </DataGridColumns>
 </DataGrid>
 
-<Modal @bind-Visible="modalVisible">
-    <ModalHeader>@(editando ? "Editar Depósito" : "Nuevo Depósito")</ModalHeader>
-    <ModalBody>
-        <Validations @ref="validator" Model="depositoEdit">
-            <Validator For="@(() => depositoEdit.Fecha)">
-                <Field>
-                    <FieldLabel>Fecha</FieldLabel>
-                    <DateEdit @bind-Date="depositoEdit.Fecha" Placeholder="Fecha" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-            <Validator For="@(() => depositoEdit.FondoMonetarioNombre)">
-                <Field>
-                    <FieldLabel>Fondo Monetario</FieldLabel>
-                    <TextEdit @bind-Text="depositoEdit.FondoMonetarioNombre" Placeholder="Fondo Monetario" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-            <Validator For="@(() => depositoEdit.Monto)">
-                <Field>
-                    <FieldLabel>Monto</FieldLabel>
-                    <NumericEdit @bind-Value="depositoEdit.Monto" Placeholder="Monto" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-        </Validations>
-        <Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
-    </ModalBody>
-    <ModalFooter>
-        <Button Color="Color.Primary" Clicked="GuardarDepositoAsync">Guardar</Button>
-        <Button Color="Color.Secondary" Clicked="()=>modalVisible=false">Cancelar</Button>
-    </ModalFooter>
-</Modal>
+<Validator For="@(() => depositoEdit.FondoMonetarioNombre)">
+    <Field>
+        <FieldLabel>Fondo Monetario</FieldLabel>
+        <Select TValue="int" @bind-Value="depositoEdit.FondoMonetarioNombre">
+            <SelectItem TValue="int" Value="0">-- Seleccione un fondo --</SelectItem>
+            @if (fondosMonetariosDisponibles != null)
+            {
+                @foreach (var fondo in fondosMonetariosDisponibles)
+                {
+                    <SelectItem TValue="int" Value="@fondo.Id">@fondo.Nombre</SelectItem>
+                }
+            }
+        </Select>
+        <ValidationMessage />
+    </Field>
+</Validator>
 
 <Button Color="Color.Success" Clicked="NuevoDeposito">Nuevo Depósito</Button>
 
@@ -60,9 +43,13 @@
     Validations? validator;
     string? errorMessage;
 
+    List<FondoMonetarioDto> fondosMonetariosDisponibles = new List<FondoMonetarioDto>();
+
+
     protected override async Task OnInitializedAsync()
     {
-        await CargarDepositosAsync();
+        await CargarFondosMonetariosDisponiblesAsync();
+        //await CargarDepositosAsync();
     }
 
     async Task CargarDepositosAsync()
@@ -114,5 +101,19 @@
     {
         await Http.DeleteAsync($"api/Depositos/{deposito.Id}");
         await CargarDepositosAsync();
+    }
+
+
+    async Task CargarFondosMonetariosDisponiblesAsync()
+    {
+        try
+        {
+
+            fondosMonetariosDisponibles = await Http.GetFromJsonAsync<List<FondoMonetarioDto>>("api/FondoMonetario") ?? new List<FondoMonetarioDto>();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al cargar fondos monetarios: {ex.Message}";
+        }
     }
 }

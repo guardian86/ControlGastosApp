@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ControlGastos.Client", "Con
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ControlGastos.Core", "ControlGastos.Core\ControlGastos.Core.csproj", "{F24B332F-77E9-4490-B161-C0EC50859871}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ControlGastos.Test", "ControlGastos.Test\ControlGastos.Test.csproj", "{504477E1-4EBB-3A85-EC4E-BB4BBF3E8E00}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{F24B332F-77E9-4490-B161-C0EC50859871}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F24B332F-77E9-4490-B161-C0EC50859871}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F24B332F-77E9-4490-B161-C0EC50859871}.Release|Any CPU.Build.0 = Release|Any CPU
+		{504477E1-4EBB-3A85-EC4E-BB4BBF3E8E00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{504477E1-4EBB-3A85-EC4E-BB4BBF3E8E00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{504477E1-4EBB-3A85-EC4E-BB4BBF3E8E00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{504477E1-4EBB-3A85-EC4E-BB4BBF3E8E00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
