@@ -112,7 +112,27 @@
 
     async Task CargarGastosAsync()
     {
-        gastos = await Http.GetFromJsonAsync<List<GastoEncabezadoDto>>("api/GastoEncabezado") ?? new();
+        try
+        {
+            var response = await Http.GetAsync("api/GastoEncabezado"); 
+            if (response.IsSuccessStatusCode)
+            {
+                gastos = await response.Content.ReadFromJsonAsync<List<GastoEncabezadoDto>>() ?? new List<GastoEncabezadoDto>();
+            }
+            else
+            {
+                errorMessage = $"Error al cargar gastos: {response.StatusCode} - {await response.Content.ReadAsStringAsync() }";
+                Console.WriteLine(errorMessage); 
+                gastos = new List<GastoEncabezadoDto>(); 
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Excepción al cargar gastos: {ex.Message}";
+            Console.WriteLine(errorMessage); 
+            gastos = new List<GastoEncabezadoDto>();
+        }
+        StateHasChanged(); // Puede ser necesario 
     }
 
     void NuevoGasto()

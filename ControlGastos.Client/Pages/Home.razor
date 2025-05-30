@@ -1,7 +1,35 @@
 ﻿@page "/"
+<PageTitle>Control de Gastos</PageTitle>
 
-<PageTitle>Home</PageTitle>
+<Container>
+    <Row class="mt-4 text-center">
+        <Column>
+            <Heading Size="HeadingSize.Is3">📊 Control de Gastos</Heading>
+            <Paragraph>Gestiona tus ingresos y egresos de manera eficiente.</Paragraph>
+            <Button Color="Color.Primary" Size="Size.Large" To="/movimientos">
+                Ver Movimientos
+            </Button>
+        </Column>
+    </Row>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
+    <Row class="mt-5">
+        <Column Size="4">
+            <Card>
+                <CardHeader><Heading Size="HeadingSize.Is3">⚙️ Mantenimientos</Heading></CardHeader>
+                <CardBody>Administra tipos de gasto y fondos monetarios.</CardBody>
+            </Card>
+        </Column>
+        <Column Size="4">
+            <Card>
+                <CardHeader><Heading Size="HeadingSize.Is3">📊 Movimientos</Heading></CardHeader>
+                <CardBody>Registra gastos y depósitos.</CardBody>
+            </Card>
+        </Column>
+        <Column Size="4">
+            <Card>
+                <CardHeader><Heading Size="HeadingSize.Is3">📈 Reportes</Heading></CardHeader>
+                <CardBody>Consulta movimientos y gráficos comparativos.</CardBody>
+            </Card>
+        </Column>
+    </Row>
+</Container>
