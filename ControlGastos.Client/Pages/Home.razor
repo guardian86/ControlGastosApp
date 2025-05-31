@@ -4,10 +4,13 @@
 <Container>
     <Row class="mt-4 text-center">
         <Column>
-            <Heading Size="HeadingSize.Is3">📊 Control de Gastos</Heading>
-            <Paragraph>Gestiona tus ingresos y egresos de manera eficiente.</Paragraph>
-            <Button Color="Color.Primary" Size="Size.Large" To="/movimientos">
-                Ver Movimientos
+            <Heading Size="HeadingSize.Is2" Class="mb-2">Bienvenido a tu Control de Gastos</Heading>
+            <Paragraph Class="lead">Gestiona tus ingresos y egresos de manera eficiente y visualiza tu salud financiera.</Paragraph>
+            <Button Color="Color.Primary" Size="Size.Large" To="/movimientos" Class="me-2">
+                <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Search" Class="me-2" /> Ver Movimientos
+            </Button>
+            <Button Color="Color.Info" Size="Size.Large" To="/graficos">
+                <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.ChartBar" Class="me-2" /> Ver Gráficos
             </Button>
         </Column>
     </Row>
@@ -15,20 +18,53 @@
     <Row class="mt-5">
         <Column Size="4">
             <Card>
-                <CardHeader><Heading Size="HeadingSize.Is3">⚙️ Mantenimientos</Heading></CardHeader>
-                <CardBody>Administra tipos de gasto y fondos monetarios.</CardBody>
+                <CardHeader>
+                    <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Tools" Class="me-2" />
+                    <Heading Size="HeadingSize.Is4">Mantenimientos</Heading>
+                </CardHeader>
+                <CardBody>
+                    <Paragraph>Administra tipos de gasto y fondos monetarios.</Paragraph>
+                    <Button Color="Color.Secondary" To="/tipos-gasto" Class="me-2">
+                        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Tags" Class="me-2" /> Tipos de Gasto
+                    </Button>
+                    <Button Color="Color.Secondary" To="/fondos-monetarios">
+                        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Wallet" Class="me-2" /> Fondos Monetarios
+                    </Button>
+                </CardBody>
             </Card>
         </Column>
         <Column Size="4">
             <Card>
-                <CardHeader><Heading Size="HeadingSize.Is3">📊 Movimientos</Heading></CardHeader>
-                <CardBody>Registra gastos y depósitos.</CardBody>
+                <CardHeader>
+                    <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Receipt" Class="me-2" />
+                    <Heading Size="HeadingSize.Is4">Movimientos</Heading>
+                </CardHeader>
+                <CardBody>
+                    <Paragraph>Registra gastos y depósitos.</Paragraph>
+                    <Button Color="Color.Success" To="/gastos" Class="me-2">
+                        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Receipt" Class="me-2" /> Gastos
+                    </Button>
+                    <Button Color="Color.Success" To="/depositos">
+                        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.PiggyBank" Class="me-2" /> Depósitos
+                    </Button>
+                </CardBody>
             </Card>
         </Column>
         <Column Size="4">
             <Card>
-                <CardHeader><Heading Size="HeadingSize.Is3">📈 Reportes</Heading></CardHeader>
-                <CardBody>Consulta movimientos y gráficos comparativos.</CardBody>
+                <CardHeader>
+                    <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.ChartPie" Class="me-2" />
+                    <Heading Size="HeadingSize.Is4">Reportes</Heading>
+                </CardHeader>
+                <CardBody>
+                    <Paragraph>Consulta movimientos y gráficos comparativos.</Paragraph>
+                    <Button Color="Color.Warning" To="/movimientos" Class="me-2">
+                        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Search" Class="me-2" /> Movimientos
+                    </Button>
+                    <Button Color="Color.Warning" To="/graficos">
+                        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.ChartBar" Class="me-2" /> Gráficos
+                    </Button>
+                </CardBody>
             </Card>
         </Column>
     </Row>

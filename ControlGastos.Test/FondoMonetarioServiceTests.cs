@@ -1,75 +1,70 @@
-//using Microsoft.VisualStudio.TestTools.UnitTesting;
-//using Moq;
-//using System.Collections.Generic;
-//using System.Linq;
-//using ControlGastos.Application.Services;
-//using ControlGastos.Core.Interfaces.Repositories;
-//using ControlGastos.Core.Entities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using ControlGastos.Application.Services;
+using ControlGastos.Core.Interfaces.Repositories;
+using ControlGastos.Core.Entities;
 
-//namespace ControlGastos.Test
-//{
-//    [TestClass]
-//    public class FondoMonetarioServiceTests
-//    {
-//        [TestMethod]
-//        public void ObtenerTodos_DeberiaRetornarListaDeFondos()
-//        {
-//            var fondos = new List<FondoMonetario>
-//            {
-//                new FondoMonetario { Id = 1, Nombre = "Caja Principal", Saldo = 1000m },
-//                new FondoMonetario { Id = 2, Nombre = "Banco", Saldo = 5000m }
-//            };
-//            var repoMock = new Mock<IFondoMonetarioRepository>();
-//            repoMock.Setup(r => r.ObtenerTodos()).Returns(fondos);
-//            var service = new FondoMonetarioService(repoMock.Object);
+namespace ControlGastos.Test
+{
+    [TestClass]
+    public class FondoMonetarioServiceTests
+    {
+        [TestMethod]
+        public async Task GetAllAsync_DeberiaRetornarListaDeFondos()
+        {
+            var fondos = new List<FondoMonetario>
+            {
+                new FondoMonetario { Id = 1, Nombre = "Caja Principal", Tipo = "CajaMenuda" },
+                new FondoMonetario { Id = 2, Nombre = "Banco", Tipo = "CuentaBancaria" }
+            };
+            var repoMock = new Mock<IFondoMonetarioRepository>();
+            repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(fondos);
+            var service = new FondoMonetarioService(repoMock.Object);
 
-//            var resultado = service.ObtenerTodos();
+            var resultado = await service.GetAllAsync();
 
-//            Assert.IsNotNull(resultado);
-//            Assert.AreEqual(2, resultado.Count());
-//            Assert.AreEqual("Caja Principal", resultado.First().Nombre);
-//        }
+            Assert.IsNotNull(resultado);
+            Assert.AreEqual(2, resultado.Count());
+            Assert.AreEqual("Caja Principal", resultado.First().Nombre);
+        }
 
-//        [TestMethod]
-//        public void Crear_ConDatosValidos_DeberiaCrearCorrectamente()
-//        {
-//            var nuevo = new FondoMonetario { Nombre = "Ahorros", Saldo = 200m };
-//            var repoMock = new Mock<IFondoMonetarioRepository>();
-//            repoMock.Setup(r => r.Crear(It.IsAny<FondoMonetario>())).Returns(1);
-//            var service = new FondoMonetarioService(repoMock.Object);
+        [TestMethod]
+        public async Task AddAsync_DeberiaAgregarFondo()
+        {
+            var repoMock = new Mock<IFondoMonetarioRepository>();
+            var service = new FondoMonetarioService(repoMock.Object);
+            var fondo = new FondoMonetario { Id = 3, Nombre = "Nuevo Fondo", Tipo = "CajaMenuda" };
 
-//            var idCreado = service.Crear(nuevo);
+            await service.AddAsync(fondo);
 
-//            Assert.AreEqual(1, idCreado);
-//            repoMock.Verify(r => r.Crear(It.IsAny<FondoMonetario>()), Times.Once);
-//        }
+            repoMock.Verify(r => r.AddAsync(fondo), Times.Once);
+        }
 
-//        [TestMethod]
-//        public void Actualizar_DeberiaActualizarCorrectamente()
-//        {
-//            var existente = new FondoMonetario { Id = 1, Nombre = "Caja Principal", Saldo = 1200m };
-//            var repoMock = new Mock<IFondoMonetarioRepository>();
-//            repoMock.Setup(r => r.Actualizar(existente)).Returns(true);
-//            var service = new FondoMonetarioService(repoMock.Object);
+        [TestMethod]
+        public async Task UpdateAsync_DeberiaActualizarFondo()
+        {
+            var repoMock = new Mock<IFondoMonetarioRepository>();
+            var service = new FondoMonetarioService(repoMock.Object);
+            var fondo = new FondoMonetario { Id = 1, Nombre = "Caja Principal", Tipo = "CajaMenuda" };
 
-//            var actualizado = service.Actualizar(existente);
+            await service.UpdateAsync(fondo);
 
-//            Assert.IsTrue(actualizado);
-//            repoMock.Verify(r => r.Actualizar(existente), Times.Once);
-//        }
+            repoMock.Verify(r => r.UpdateAsync(fondo), Times.Once);
+        }
 
-//        [TestMethod]
-//        public void Eliminar_DeberiaEliminarCorrectamente()
-//        {
-//            int idEliminar = 1;
-//            var repoMock = new Mock<IFondoMonetarioRepository>();
-//            repoMock.Setup(r => r.Eliminar(idEliminar)).Returns(true);
-//            var service = new FondoMonetarioService(repoMock.Object);
+        [TestMethod]
+        public async Task DeleteAsync_DeberiaEliminarFondo()
+        {
+            var repoMock = new Mock<IFondoMonetarioRepository>();
+            var service = new FondoMonetarioService(repoMock.Object);
+            int idEliminar = 1;
 
-//            var eliminado = service.Eliminar(idEliminar);
+            await service.DeleteAsync(idEliminar);
 
-//            Assert.IsTrue(eliminado);
-//            repoMock.Verify(r => r.Eliminar(idEliminar), Times.Once);
-//        }
-//    }
-//}
+            repoMock.Verify(r => r.DeleteAsync(idEliminar), Times.Once);
+        }
+    }
+}

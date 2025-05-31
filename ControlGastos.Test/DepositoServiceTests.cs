@@ -6,14 +6,12 @@ using System.Threading.Tasks;
 using ControlGastos.Application.Services;
 using ControlGastos.Core.Interfaces.Repositories;
 using ControlGastos.Core.Entities;
-using ControlGastos.Core.DTOs;
 
 namespace ControlGastos.Test
 {
     [TestClass]
     public class DepositoServiceTests
     {
-        
         [TestMethod]
         public async Task GetByIdAsync_ShouldReturnDeposito()
         {
@@ -48,12 +46,11 @@ namespace ControlGastos.Test
         }
 
         [TestMethod]
-        public async Task AddAsync_ShouldCallRepository()
+        public async Task AddAsync_DeberiaAgregarDeposito()
         {
-            var deposito = new Deposito { Id = 0, Fecha = System.DateTime.Today, FondoMonetarioId = 2, Monto = 100m };
             var repoMock = new Mock<IDepositoRepository>();
-            repoMock.Setup(r => r.AddAsync(deposito)).Returns(Task.CompletedTask);
             var service = new DepositoService(repoMock.Object);
+            var deposito = new Deposito { Id = 3, Fecha = System.DateTime.Today, FondoMonetarioId = 1, Monto = 100m };
 
             await service.AddAsync(deposito);
 
@@ -61,12 +58,11 @@ namespace ControlGastos.Test
         }
 
         [TestMethod]
-        public async Task UpdateAsync_ShouldCallRepository()
+        public async Task UpdateAsync_DeberiaActualizarDeposito()
         {
-            var deposito = new Deposito { Id = 1, Fecha = System.DateTime.Today, FondoMonetarioId = 2, Monto = 600m };
             var repoMock = new Mock<IDepositoRepository>();
-            repoMock.Setup(r => r.UpdateAsync(deposito)).Returns(Task.CompletedTask);
             var service = new DepositoService(repoMock.Object);
+            var deposito = new Deposito { Id = 1, Fecha = System.DateTime.Today, FondoMonetarioId = 1, Monto = 200m };
 
             await service.UpdateAsync(deposito);
 
@@ -74,12 +70,11 @@ namespace ControlGastos.Test
         }
 
         [TestMethod]
-        public async Task DeleteAsync_ShouldCallRepository()
+        public async Task DeleteAsync_DeberiaEliminarDeposito()
         {
-            int idEliminar = 1;
             var repoMock = new Mock<IDepositoRepository>();
-            repoMock.Setup(r => r.DeleteAsync(idEliminar)).Returns(Task.CompletedTask);
             var service = new DepositoService(repoMock.Object);
+            int idEliminar = 1;
 
             await service.DeleteAsync(idEliminar);
 
