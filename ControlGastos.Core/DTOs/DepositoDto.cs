@@ -7,13 +7,18 @@ namespace ControlGastos.Core.DTOs
     {
         public int Id { get; set; }
 
-        [Required]
-        public DateTime Fecha { get; set; }
+        [Required(ErrorMessage = "La fecha es obligatoria.")]
+        public DateTime Fecha { get; set; } = DateTime.Today;
 
-        [Required]
+        // Para el formulario de creación/edición, este será el ID seleccionado
+        [Required(ErrorMessage = "Debe seleccionar un fondo monetario.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un fondo monetario válido.")]
+        public int FondoMonetarioId { get; set; }
+
         public string? FondoMonetarioNombre { get; set; }
 
-        [Range(0, double.MaxValue, ErrorMessage = "Monto debe ser positivo.")]
+        [Required(ErrorMessage = "El monto es obligatorio.")]
+        [Range(1, int.MaxValue, ErrorMessage = "El monto debe ser positivo y mayor que cero.")] 
         public decimal Monto { get; set; }
     }
 }

@@ -3,46 +3,107 @@
 
 
 <PageTitle>Gráfico Comparativo de Presupuesto y Ejecución</PageTitle>
-
 <Heading Size="HeadingSize.Is3">Gráfico Comparativo de Presupuesto y Ejecución</Heading>
 
-<Validations Validator="validator">
-    <DateEdit @bind-Date="fechaInicio" Placeholder="Fecha Inicio" />
-    <DateEdit @bind-Date="fechaFin" Placeholder="Fecha Fin" />
-    <Button Color="Color.Primary" Clicked="BuscarGrafico">Buscar</Button>
+<Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
+
+<Validations @ref="validator" Model="filtroGrafico">
+    <Row>
+        <Column ColumnSize="ColumnSize.IsAuto">
+            <Validator For="@(() => filtroGrafico.FechaInicio)">
+                <Field>
+                    <FieldLabel>Fecha Inicio</FieldLabel>
+                    <DateEdit @bind-Date="filtroGrafico.FechaInicio" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+        </Column>
+        <Column ColumnSize="ColumnSize.IsAuto">
+            <Validator For="@(() => filtroGrafico.FechaFin)">
+                <Field>
+                    <FieldLabel>Fecha Fin</FieldLabel>
+                    <DateEdit @bind-Date="filtroGrafico.FechaFin" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+        </Column>
+        <Column ColumnSize="ColumnSize.IsAuto" Style="align-self: flex-end; padding-bottom: 1rem;"> 
+            <Button Color="Color.Primary" Clicked="BuscarGrafico">Buscar</Button>
+        </Column>
+    </Row>
 </Validations>
 
 <BarChart TItem="decimal" @ref="barChart" Options="chartOptions" Data="chartData" />
 
+
 @code {
-    DateTime fechaInicio = DateTime.Today.AddMonths(-1);
-    DateTime fechaFin = DateTime.Today;
-    List<GraficoDto> datos = new();
-    BarChart<decimal>? barChart;
-    BarChartOptions chartOptions = new() { Responsive = true };
-    ChartData<decimal> chartData = new();
-    Validations? validator;
+    // modelo para los filtros
+    private FiltroGraficoDto filtroGrafico = new FiltroGraficoDto();
+    // Para los datos del gráfico
+    private List<GraficoDto> datosParaElGrafico = new();
+
+    private BarChart<decimal>? barChart;
+    private BarChartOptions chartOptions = new() { Responsive = true };
+    private ChartData<decimal> chartData = new();
+    private Validations? validator;
+    private string? errorMessage;
+
 
     async Task BuscarGrafico()
     {
-        if (validator is null || !await validator.ValidateAll()) return;
-        var url = $"api/Graficos?fechaInicio={fechaInicio:yyyy-MM-dd}&fechaFin={fechaFin:yyyy-MM-dd}";
-        datos = await Http.GetFromJsonAsync<List<GraficoDto>>(url) ?? new();
-        chartData.Labels = datos.Select(x => (object?)x.TipoGastoNombre ?? string.Empty).ToList();
-        chartData.Datasets.Clear();
-        chartData.Datasets.Add(new BarChartDataset<decimal>
+        errorMessage = null; 
+        if (validator is null || !await validator.ValidateAll()) 
         {
-            Label = "Presupuestado",
-            Data = datos.Select(x => x.Presupuestado).ToList(),
-            BackgroundColor = "#4e73df"
-        });
-        chartData.Datasets.Add(new BarChartDataset<decimal>
+            return; 
+        }
+
+        try
         {
-            Label = "Ejecutado",
-            Data = datos.Select(x => x.Ejecutado).ToList(),
-            BackgroundColor = "#1cc88a"
-        });
-        if (barChart != null)
-            await barChart.Update();
+            if (filtroGrafico.FechaInicio.HasValue && filtroGrafico.FechaFin.HasValue)
+            {
+                var url = $"api/Graficos?fechaInicio={filtroGrafico.FechaInicio.Value:yyyy-MM-dd}&fechaFin={filtroGrafico.FechaFin.Value:yyyy-MM-dd}";
+                datosParaElGrafico = await Http.GetFromJsonAsync<List<GraficoDto>>(url) ?? new List<GraficoDto>();
+
+                // Lógica para actualizar chartData con datosParaElGrafico
+                chartData.Labels = datosParaElGrafico.Select(x => (object?)x.TipoGastoNombre ?? string.Empty).ToList();
+                chartData.Datasets.Clear();
+                chartData.Datasets.Add(new BarChartDataset<decimal>
+                {
+                    Label = "Presupuestado",
+                    Data = datosParaElGrafico.Select(x => x.Presupuestado).ToList(),
+                    BackgroundColor = "#4e73df"
+                });
+                chartData.Datasets.Add(new BarChartDataset<decimal>
+                {
+                    Label = "Ejecutado",
+                    Data = datosParaElGrafico.Select(x => x.Ejecutado).ToList(),
+                    BackgroundColor = "#1cc88a"
+                });
+
+                if (barChart != null)
+                {
+                    await barChart.Update();
+                }
+            }
+            else
+            {
+                errorMessage = "Por favor, seleccione fechas válidas.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al buscar datos para el gráfico: {ex.Message}";
+            datosParaElGrafico = new List<GraficoDto>();
+            chartData.Labels.Clear();
+            chartData.Datasets.Clear();
+            if (barChart != null)
+            {
+                await barChart.Update();
+            }
+        }
+
+        StateHasChanged();
     }
 }
+
+

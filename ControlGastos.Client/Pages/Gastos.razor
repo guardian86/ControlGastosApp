@@ -67,6 +67,7 @@
                 </DataGridColumns>
             </DataGrid>
             <Button Color="Color.Info" Clicked="AgregarDetalle">Agregar Detalle</Button>
+            
         </Validations>
         <Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
     </ModalBody>
@@ -79,9 +80,30 @@
 <Modal @bind-Visible="modalDetalleVisible">
     <ModalHeader>Agregar Detalle</ModalHeader>
     <ModalBody>
-        <Validations Validator="detalleValidator">
-            <TextEdit @bind-Text="detalleEdit.TipoGastoNombre" Placeholder="Tipo de Gasto" />
-            <NumericEdit @bind-Value="detalleEdit.Monto" Placeholder="Monto" />
+        <Validations @ref="detalleValidator" Model="detalleEdit">
+            <Validator For="@(() => detalleEdit.TipoGastoId)">
+                <Field>
+                    <FieldLabel>Tipo de Gasto</FieldLabel>
+                    <Select TValue="int" @bind-Value="detalleEdit.TipoGastoId">
+                        <SelectItem TValue="int" Value="0">-- Seleccione un tipo --</SelectItem>
+                        @if (tiposDeGastoDisponibles != null)
+                        {
+                            @foreach (var tipoGasto in tiposDeGastoDisponibles)
+                            {
+                                <SelectItem TValue="int" Value="@tipoGasto.Id">@tipoGasto.Nombre (@tipoGasto.Codigo)</SelectItem>
+                            }
+                        }
+                    </Select>
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+            <Validator For="@(() => detalleEdit.Monto)">
+                <Field>
+                    <FieldLabel>Monto</FieldLabel>
+                    <NumericEdit TValue="decimal" @bind-Value="detalleEdit.Monto" Placeholder="Monto" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
         </Validations>
     </ModalBody>
     <ModalFooter>
@@ -91,12 +113,15 @@
 </Modal>
 
 @code {
+
+    List<TipoGastoDto> tiposDeGastoDisponibles = new(); 
+
     List<GastoEncabezadoDto> gastos = new();
     GastoEncabezadoDto gastoEdit = new() 
     { 
         Detalles = new List<GastoDetalleDto>() 
     };
-    
+
     bool modalVisible = false;
     bool editando = false;
     Validations? validator;
@@ -108,6 +133,7 @@
     protected override async Task OnInitializedAsync()
     {
         await CargarGastosAsync();
+        await CargarTiposDeGastoDisponiblesAsync();
     }
 
     async Task CargarGastosAsync()
@@ -140,6 +166,33 @@
         gastoEdit = new GastoEncabezadoDto { Detalles = new List<GastoDetalleDto>() };
         editando = false;
         modalVisible = true;
+    }
+
+
+    async Task CargarTiposDeGastoDisponiblesAsync()
+    {
+        tiposDeGastoDisponibles = await Http.GetFromJsonAsync<List<TipoGastoDto>>("api/TipoGasto") ?? new();
+    }
+
+    void AgregarDetalle()
+    {
+        detalleEdit = new GastoDetalleDto(); 
+        modalDetalleVisible = true;
+    }
+
+    async Task ConfirmarDetalle()
+    {
+        if (detalleValidator is null || !await detalleValidator.ValidateAll()) return;
+
+        var tipoGastoSeleccionado = tiposDeGastoDisponibles.FirstOrDefault(tg => tg.Id == detalleEdit.TipoGastoId);
+
+        gastoEdit.Detalles.Add(new GastoDetalleDto
+        {
+            TipoGastoId = detalleEdit.TipoGastoId,
+            TipoGastoNombre = tipoGastoSeleccionado?.Nombre, 
+            Monto = detalleEdit.Monto
+        });
+        modalDetalleVisible = false;
     }
 
     async Task GuardarGastoAsync()
@@ -190,16 +243,5 @@
         await CargarGastosAsync();
     }
 
-    void AgregarDetalle()
-    {
-        detalleEdit = new GastoDetalleDto();
-        modalDetalleVisible = true;
-    }
-
-    async Task ConfirmarDetalle()
-    {
-        if (detalleValidator is null || !await detalleValidator.ValidateAll()) return;
-        gastoEdit.Detalles.Add(new GastoDetalleDto { TipoGastoNombre = detalleEdit.TipoGastoNombre, Monto = detalleEdit.Monto });
-        modalDetalleVisible = false;
-    }
+   
 }

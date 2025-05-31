@@ -31,6 +31,7 @@ namespace ControlGastos.API.Controllers
             {
                 Id = d.Id,
                 Fecha = d.Fecha,
+                FondoMonetarioId = d.FondoMonetarioId, 
                 FondoMonetarioNombre = d.FondoMonetario != null ? d.FondoMonetario.Nombre : string.Empty,
                 Monto = d.Monto
             }).ToList();
@@ -67,35 +68,96 @@ namespace ControlGastos.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] DepositoDto depositoDto)
+        public async Task<ActionResult<DepositoDto>> Post([FromBody] DepositoDto depositoDto) 
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            var fondo = await _context.FondosMonetarios.FirstOrDefaultAsync(f => f.Nombre == depositoDto.FondoMonetarioNombre);
-            if (fondo == null) return BadRequest("Fondo monetario no válido");
-            var deposito = new Deposito
+          
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var fondoMonetarioExiste = await _context.FondosMonetarios.AnyAsync(f => f.Id == depositoDto.FondoMonetarioId);
+            if (!fondoMonetarioExiste)
+            {
+                // Puedes añadir un error específico al ModelState para el campo FondoMonetarioId
+                ModelState.AddModelError(nameof(depositoDto.FondoMonetarioId), "El fondo monetario seleccionado no existe.");
+                return BadRequest(ModelState);
+            }
+
+            
+            var deposito = new Deposito 
             {
                 Fecha = depositoDto.Fecha,
-                FondoMonetarioId = fondo.Id,
+                FondoMonetarioId = depositoDto.FondoMonetarioId,
                 Monto = depositoDto.Monto
+                
             };
+
+            
             await _service.AddAsync(deposito);
-            depositoDto.Id = deposito.Id;
+
+
+            depositoDto.Id = deposito.Id; 
+            depositoDto.FondoMonetarioId = deposito.FondoMonetarioId; 
+
+            var fondoInfo = await _context.FondosMonetarios.FindAsync(deposito.FondoMonetarioId);
+            depositoDto.FondoMonetarioNombre = fondoInfo?.Nombre; 
+
             return CreatedAtAction(nameof(Get), new { id = deposito.Id }, depositoDto);
         }
 
         [HttpPut("{id}")]
         public async Task<ActionResult> Put(int id, [FromBody] DepositoDto depositoDto)
         {
-            if (id != depositoDto.Id) return BadRequest();
-            var fondo = await _context.FondosMonetarios.FirstOrDefaultAsync(f => f.Nombre == depositoDto.FondoMonetarioNombre);
-            if (fondo == null) return BadRequest("Fondo monetario no válido");
-            var deposito = await _context.Depositos.FindAsync(id);
-            if (deposito == null) return NotFound();
+            if (id != depositoDto.Id) return BadRequest("El ID de la ruta no coincide con el ID del cuerpo."); 
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+           // Verificar si el FondoMonetarioId del DTO existe
+            var fondoMonetarioExiste = await _context.FondosMonetarios.AnyAsync(f => f.Id == depositoDto.FondoMonetarioId);
+            if (!fondoMonetarioExiste)
+            {
+                ModelState.AddModelError(nameof(depositoDto.FondoMonetarioId), "El fondo monetario seleccionado no existe.");
+                return BadRequest(ModelState);
+            }
+
+            var deposito = await _context.Depositos.FindAsync(id); 
+            if (deposito == null)
+            {
+                return NotFound("El depósito que intentas actualizar no fue encontrado.");
+            }
+
             deposito.Fecha = depositoDto.Fecha;
-            deposito.FondoMonetarioId = fondo.Id;
+            deposito.FondoMonetarioId = depositoDto.FondoMonetarioId; 
             deposito.Monto = depositoDto.Monto;
-            await _service.UpdateAsync(deposito);
-            return NoContent();
+            
+            try
+            {
+                await _service.UpdateAsync(deposito);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+               
+                if (!await DepositoExists(id)) 
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw; 
+                }
+            }
+
+            return NoContent(); 
+        }
+
+    
+        private async Task<bool> DepositoExists(int id)
+        {
+            return await _context.Depositos.AnyAsync(e => e.Id == id);
         }
 
         [HttpDelete("{id}")]

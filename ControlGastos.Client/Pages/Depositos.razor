@@ -1,43 +1,86 @@
 @page "/depositos"
 @inject HttpClient Http
 
-
 <PageTitle>Depósitos</PageTitle>
-
 <Heading Size="HeadingSize.Is3">Depósitos</Heading>
+
+<Button Color="Color.Success" Clicked="NuevoDeposito" Class="mb-3">Nuevo Depósito</Button>
 
 <DataGrid TItem="DepositoDto" Data="depositos" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
     <DataGridColumns>
-        <DataGridColumn TItem="DepositoDto" Field="@nameof(DepositoDto.Id)" Caption="ID" />
-        <DataGridColumn TItem="DepositoDto" Field="@nameof(DepositoDto.Fecha)" Caption="Fecha" />
-        <DataGridColumn TItem="DepositoDto" Field="@nameof(DepositoDto.FondoMonetarioNombre)" Caption="Fondo Monetario" />
-        <DataGridColumn TItem="DepositoDto" Field="@nameof(DepositoDto.Monto)" Caption="Monto" />
-        <DataGridCommandColumn TItem="DepositoDto" />
+        <DataGridColumn TItem="DepositoDto" Field="@nameof(DepositoDto.Id)" Caption="ID" Sortable="true" />
+        <DataGridColumn TItem="DepositoDto" Field="@nameof(DepositoDto.Fecha)" Caption="Fecha" Sortable="true">
+            <DisplayTemplate>
+                @context.Fecha.ToShortDateString()
+            </DisplayTemplate>
+        </DataGridColumn>
+        <DataGridColumn TItem="DepositoDto" Field="@nameof(DepositoDto.FondoMonetarioNombre)" Caption="Fondo Monetario" Sortable="true" />
+        <DataGridColumn TItem="DepositoDto" Field="@nameof(DepositoDto.Monto)" Caption="Monto" Sortable="true">
+            <DisplayTemplate>
+                @context.Monto.ToString("C")
+            </DisplayTemplate>
+        </DataGridColumn>
+        <DataGridCommandColumn TItem="DepositoDto" Caption="Acciones">
+            <Buttons>
+               @*  <Button Color="Color.Primary" Size="Size.Small" Clicked="@(() => EditDeposito(context))">Editar</Button>
+                <Button Color="Color.Danger" Size="Size.Small" Clicked="@(() => DeleteDeposito(context))">Eliminar</Button> *@
+            </Buttons>
+        </DataGridCommandColumn>
     </DataGridColumns>
 </DataGrid>
 
-<Validator For="@(() => depositoEdit.FondoMonetarioNombre)">
-    <Field>
-        <FieldLabel>Fondo Monetario</FieldLabel>
-        <Select TValue="int" @bind-Value="depositoEdit.FondoMonetarioNombre">
-            <SelectItem TValue="int" Value="0">-- Seleccione un fondo --</SelectItem>
-            @if (fondosMonetariosDisponibles != null)
-            {
-                @foreach (var fondo in fondosMonetariosDisponibles)
-                {
-                    <SelectItem TValue="int" Value="@fondo.Id">@fondo.Nombre</SelectItem>
-                }
-            }
-        </Select>
-        <ValidationMessage />
-    </Field>
-</Validator>
+<Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
 
-<Button Color="Color.Success" Clicked="NuevoDeposito">Nuevo Depósito</Button>
+<Modal @bind-Visible="modalVisible">
+    <ModalHeader>
+        <ModalTitle>@(editando ? "Editar Depósito" : "Nuevo Depósito")</ModalTitle>
+        <CloseButton Clicked="() => modalVisible = false" />
+    </ModalHeader>
+    <ModalBody>
+        <Validations @ref="validator" Model="depositoEdit">
+            <Validator For="@(() => depositoEdit.Fecha)">
+                <Field>
+                    <FieldLabel>Fecha</FieldLabel>
+                    <DateEdit @bind-Date="depositoEdit.Fecha" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+
+            <Validator For="@(() => depositoEdit.FondoMonetarioId)">
+                <Field>
+                    <FieldLabel>Fondo Monetario</FieldLabel>
+                    <Select TValue="int" @bind-Value="depositoEdit.FondoMonetarioId">
+                        <SelectItem TValue="int" Value="0">-- Seleccione un fondo --</SelectItem>
+                        @if (fondosMonetariosDisponibles != null)
+                        {
+                            @foreach (var fondo in fondosMonetariosDisponibles)
+                            {
+                                <SelectItem TValue="int" Value="@fondo.Id">@fondo.Nombre</SelectItem>
+                            }
+                        }
+                    </Select>
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+
+            <Validator For="@(() => depositoEdit.Monto)">
+                <Field>
+                    <FieldLabel>Monto</FieldLabel>
+                    <NumericEdit TValue="decimal" @bind-Value="depositoEdit.Monto" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+        </Validations>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Secondary" Clicked="() => modalVisible = false">Cancelar</Button>
+        <Button Color="Color.Primary" Clicked="GuardarDepositoAsync">Guardar</Button>
+    </ModalFooter>
+</Modal>
 
 @code {
     List<DepositoDto> depositos = new();
-    DepositoDto depositoEdit = new();
+    DepositoDto depositoEdit = new(); 
     bool modalVisible = false;
     bool editando = false;
     Validations? validator;
@@ -45,70 +88,119 @@
 
     List<FondoMonetarioDto> fondosMonetariosDisponibles = new List<FondoMonetarioDto>();
 
-
     protected override async Task OnInitializedAsync()
     {
         await CargarFondosMonetariosDisponiblesAsync();
-        //await CargarDepositosAsync();
+        await CargarDepositosAsync(); // Llama a cargar los depósitos también
     }
 
     async Task CargarDepositosAsync()
     {
-        depositos = await Http.GetFromJsonAsync<List<DepositoDto>>("api/Depositos") ?? new();
+        try
+        {
+            var response = await Http.GetAsync("api/Depositos"); // Asegúrate que el endpoint sea correcto
+            if (response.IsSuccessStatusCode)
+            {
+                depositos = await response.Content.ReadFromJsonAsync<List<DepositoDto>>() ?? new List<DepositoDto>();
+            }
+            else
+            {
+                errorMessage = $"Error al cargar depósitos: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Excepción al cargar depósitos: {ex.Message}";
+        }
+        // No es necesario StateHasChanged() aquí si es parte de OnInitializedAsync
     }
 
     void NuevoDeposito()
     {
-        depositoEdit = new DepositoDto();
+        
+        depositoEdit = new DepositoDto { Fecha = DateTime.Today }; 
         editando = false;
+        errorMessage = null; 
         modalVisible = true;
     }
 
     async Task GuardarDepositoAsync()
     {
         errorMessage = null;
-        if (validator is null || !await validator.ValidateAll()) return;
+        if (validator is null || !await validator.ValidateAll())
+        {
+            return; 
+        }
+
         try
         {
             HttpResponseMessage response;
             if (editando)
+            {
                 response = await Http.PutAsJsonAsync($"api/Depositos/{depositoEdit.Id}", depositoEdit);
+            }
             else
+            {
                 response = await Http.PostAsJsonAsync("api/Depositos", depositoEdit);
+            }
+
             if (!response.IsSuccessStatusCode)
             {
-                var error = await response.Content.ReadAsStringAsync();
-                errorMessage = $"Error al guardar: {error}";
+                var errorContent = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Error al guardar: {response.ReasonPhrase} - {errorContent}";
                 return;
             }
+
             modalVisible = false;
-            await CargarDepositosAsync();
+            await CargarDepositosAsync(); // Recarga la lista de depósitos
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error inesperado: {ex.Message}";
+            errorMessage = $"Error inesperado al guardar: {ex.Message}";
         }
+        StateHasChanged(); // Para actualizar la UI
     }
 
-    void EditDeposito(DepositoDto deposito)
+    void EditDeposito(DepositoDto deposito) 
     {
-        depositoEdit = new DepositoDto { Id = deposito.Id, Fecha = deposito.Fecha, FondoMonetarioNombre = deposito.FondoMonetarioNombre, Monto = deposito.Monto };
+        // Crea una copia para edición para no modificar el original en la lista directamente
+        depositoEdit = new DepositoDto 
+        { 
+            Id = deposito.Id,
+            Fecha = deposito.Fecha, 
+            FondoMonetarioId = deposito.FondoMonetarioId, 
+            FondoMonetarioNombre = deposito.FondoMonetarioNombre, 
+            Monto = deposito.Monto 
+        };
         editando = true;
+        errorMessage = null;
         modalVisible = true;
     }
 
     async Task DeleteDeposito(DepositoDto deposito)
     {
-        await Http.DeleteAsync($"api/Depositos/{deposito.Id}");
-        await CargarDepositosAsync();
+        
+        try
+        {
+            var response = await Http.DeleteAsync($"api/Depositos/{deposito.Id}");
+            if (!response.IsSuccessStatusCode)
+            {
+                 var errorContent = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Error al eliminar: {response.ReasonPhrase} - {errorContent}";
+            }
+            await CargarDepositosAsync(); // Recarga la lista
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error inesperado al eliminar: {ex.Message}";
+        }
+        StateHasChanged();
     }
-
 
     async Task CargarFondosMonetariosDisponiblesAsync()
     {
         try
         {
-
             fondosMonetariosDisponibles = await Http.GetFromJsonAsync<List<FondoMonetarioDto>>("api/FondoMonetario") ?? new List<FondoMonetarioDto>();
         }
         catch (Exception ex)

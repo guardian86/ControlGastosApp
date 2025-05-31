@@ -6,10 +6,30 @@
 
 <Heading Size="HeadingSize.Is3">Consulta de Movimientos</Heading>
 
-<Validations Validator="@validator">
-    <DateEdit @bind-Date="fechaInicio" Placeholder="Fecha Inicio" />
-    <DateEdit @bind-Date="fechaFin" Placeholder="Fecha Fin" />
-    <Button Color="Color.Primary" OnClick="BuscarMovimientos">Buscar</Button>
+<Validations @ref="validator" Model="filtros">
+    <Row>
+        <Column ColumnSize="ColumnSize.IsAuto">
+            <Validator For="@(() => filtros.FechaInicio)">
+                <Field>
+                    <FieldLabel>Fecha Inicio</FieldLabel>
+                    <DateEdit @bind-Date="filtros.FechaInicio" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+        </Column>
+        <Column ColumnSize="ColumnSize.IsAuto">
+            <Validator For="@(() => filtros.FechaFin)">
+                <Field>
+                    <FieldLabel>Fecha Fin</FieldLabel>
+                    <DateEdit @bind-Date="filtros.FechaFin" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+        </Column>
+        <Column ColumnSize="ColumnSize.IsAuto" Style="align-self: flex-end; padding-bottom: 1rem;">
+            <Button Color="Color.Primary" Clicked="BuscarMovimientos">Buscar</Button>
+        </Column>
+    </Row>
 </Validations>
 
 <Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
@@ -32,6 +52,7 @@
     private List<MovimientoDto> movimientos = new();
     private Validations? validator;
     private string? errorMessage;
+    private FiltroMovimientosDto filtros = new();
 
     private async Task BuscarMovimientos()
     {

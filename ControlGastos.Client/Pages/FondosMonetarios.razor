@@ -1,20 +1,20 @@
-@page "/fondos-monetarios"  
-@inject HttpClient Http  
+@page "/fondos-monetarios"
+@inject HttpClient Http
 
 
-<PageTitle>Fondos Monetarios</PageTitle>  
+<PageTitle>Fondos Monetarios</PageTitle>
 
-<Heading Size="HeadingSize.Is3">Fondos Monetarios</Heading>  
+<Heading Size="HeadingSize.Is3">Fondos Monetarios</Heading>
 
-<DataGrid TItem="FondoMonetarioDto" Data="fondos" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">  
-    <DataGridColumns>  
-        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Id)" Caption="ID" />  
-        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Nombre)" Caption="Nombre" />  
-        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Tipo)" Caption="Tipo" />  
-        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Descripcion)" Caption="Descripción" />  
-        <DataGridCommandColumn TItem="FondoMonetarioDto" />  
-    </DataGridColumns>  
-</DataGrid>  
+<DataGrid TItem="FondoMonetarioDto" Data="fondos" AutoGenerateColumns="true" Responsive="true" Striped="true" Bordered="true">
+    <DataGridColumns>
+        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Id)" Caption="ID" />
+        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Nombre)" Caption="Nombre" />
+        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Tipo)" Caption="Tipo" />
+        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Descripcion)" Caption="Descripción" />
+        <DataGridCommandColumn TItem="FondoMonetarioDto" />
+    </DataGridColumns>
+</DataGrid>
 
 <Modal @bind-Visible="modalVisible">
     <ModalHeader>@(editando ? "Editar Fondo Monetario" : "Nuevo Fondo Monetario")</ModalHeader>
@@ -49,47 +49,47 @@
     </ModalBody>
     <ModalFooter>
         <Button Color="Color.Primary" Clicked="GuardarFondoAsync">Guardar</Button>
-        <Button Color="Color.Secondary" Clicked="()=>modalVisible=false">Cancelar</Button>
+        <Button Color="Color.Secondary" Clicked="() => modalVisible = false">Cancelar</Button>
     </ModalFooter>
-</Modal>  
+</Modal>
 
-<Button Color="Color.Success" Clicked="NuevoFondo">Nuevo Fondo Monetario</Button>  
+<Button Color="Color.Success" Clicked="NuevoFondo">Nuevo Fondo Monetario</Button>
 
-@code {  
-    List<FondoMonetarioDto> fondos = new();  
-    FondoMonetarioDto fondoEdit = new();  
-    bool modalVisible = false;  
-    bool editando = false;  
-    Validations? validator;  
+@code {
+    List<FondoMonetarioDto> fondos = new();
+    FondoMonetarioDto fondoEdit = new();
+    bool modalVisible = false;
+    bool editando = false;
+    Validations? validator;
     string? errorMessage;
 
-    protected override async Task OnInitializedAsync()  
-    {  
-        await CargarFondosAsync();  
-    }  
-
-    async Task CargarFondosAsync()  
-    {  
-        fondos = await Http.GetFromJsonAsync<List<FondoMonetarioDto>>("api/FondoMonetario") ?? new();  
-    }  
-
-    void NuevoFondo()  
-    {  
-        fondoEdit = new FondoMonetarioDto();  
-        editando = false;  
-        modalVisible = true;  
-    }  
-
-   private async Task GuardarFondoAsync()
+    protected override async Task OnInitializedAsync()
     {
-    errorMessage = null;
+        await CargarFondosAsync();
+    }
+
+    async Task CargarFondosAsync()
+    {
+        fondos = await Http.GetFromJsonAsync<List<FondoMonetarioDto>>("api/FondoMonetario") ?? new();
+    }
+
+    void NuevoFondo()
+    {
+        fondoEdit = new FondoMonetarioDto();
+        editando = false;
+        modalVisible = true;
+    }
+
+    private async Task GuardarFondoAsync()
+    {
+        errorMessage = null;
         if (!(await (validator?.ValidateAll() ?? Task.FromResult(false)))) return; // Validación más concisa
         try
         {
             // Determina el método HTTP según el estado de edición
             var endpoint = editando ? $"api/FondoMonetario/{fondoEdit.Id}" : "api/FondoMonetario";
-            var response = editando 
-                ? await Http.PutAsJsonAsync(endpoint, fondoEdit) 
+            var response = editando
+                ? await Http.PutAsJsonAsync(endpoint, fondoEdit)
                 : await Http.PostAsJsonAsync(endpoint, fondoEdit);
 
             await ProcesarRespuestaAsync(response);
@@ -113,18 +113,18 @@
 
         modalVisible = false;
         await CargarFondosAsync();
-    } 
+    }
 
-    void EditFondo(FondoMonetarioDto fondo)  
-    {  
-        fondoEdit = new FondoMonetarioDto { Id = fondo.Id, Nombre = fondo.Nombre, Tipo = fondo.Tipo, Descripcion = fondo.Descripcion };  
-        editando = true;  
-        modalVisible = true;  
-    }  
+    void EditFondo(FondoMonetarioDto fondo)
+    {
+        fondoEdit = new FondoMonetarioDto { Id = fondo.Id, Nombre = fondo.Nombre, Tipo = fondo.Tipo, Descripcion = fondo.Descripcion };
+        editando = true;
+        modalVisible = true;
+    }
 
-    async Task DeleteFondo(FondoMonetarioDto fondo)  
-    {  
-        await Http.DeleteAsync($"api/FondoMonetario/{fondo.Id}");  
-        await CargarFondosAsync();  
-    }  
+    async Task DeleteFondo(FondoMonetarioDto fondo)
+    {
+        await Http.DeleteAsync($"api/FondoMonetario/{fondo.Id}");
+        await CargarFondosAsync();
+    }
 }

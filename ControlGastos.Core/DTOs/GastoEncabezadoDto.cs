@@ -21,6 +21,8 @@ namespace ControlGastos.Core.DTOs
     }
     public class GastoDetalleDto
     {
+        public int TipoGastoId { get; set; }
+
         [Required]
         public string? TipoGastoNombre { get; set; }
 
