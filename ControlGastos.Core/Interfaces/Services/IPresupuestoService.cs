@@ -6,6 +6,7 @@ namespace ControlGastos.Core.Interfaces.Services
 {
     public interface IPresupuestoService
     {
+        Task<IEnumerable<Presupuesto>> GetAllAsync();
         Task<Presupuesto> GetByIdAsync(int id);
         Task<IEnumerable<Presupuesto>> GetByUsuarioIdAsync(int usuarioId);
         Task<Presupuesto> GetByUsuarioTipoGastoMesAnioAsync(int usuarioId, int tipoGastoId, int mes, int anio);

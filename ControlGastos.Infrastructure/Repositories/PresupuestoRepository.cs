@@ -17,6 +17,11 @@ namespace ControlGastos.Infrastructure.Repositories
             _context = context;
         }
 
+        public async Task<IEnumerable<Presupuesto>> GetAllAsync()
+        {
+            return await _context.Presupuestos.ToListAsync();
+        }
+
         public async Task<Presupuesto?> GetByIdAsync(int id)
         {
             return await _context.Presupuestos.FindAsync(id);
@@ -60,5 +65,7 @@ namespace ControlGastos.Infrastructure.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+       
     }
 }

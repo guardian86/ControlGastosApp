@@ -19,14 +19,62 @@
 </DataGrid>
 
 <Modal @bind-Visible="modalVisible">
-    <ModalHeader>@(editando ? "Editar Presupuesto" : "Nuevo Presupuesto")</ModalHeader>
+    <ModalHeader>
+        <ModalTitle>@(editando ? "Editar Presupuesto" : "Nuevo Presupuesto")</ModalTitle>
+        <CloseButton Clicked="() => modalVisible = false" />
+    </ModalHeader>
     <ModalBody>
-        <Validations @ref="validator">
-            <NumericEdit @bind-Value="presupuestoEdit.UsuarioId" Placeholder="Usuario" />
-            <TextEdit @bind-Text="presupuestoEdit.TipoGastoNombre" Placeholder="Tipo de Gasto" />
-            <NumericEdit @bind-Value="presupuestoEdit.Mes" Placeholder="Mes" />
-            <NumericEdit @bind-Value="presupuestoEdit.Anio" Placeholder="Año" />
-            <NumericEdit @bind-Value="presupuestoEdit.MontoPresupuestado" Placeholder="Monto" />
+        <Validations @ref="validator" Model="presupuestoEdit">
+            
+            <Validator For="@(() => presupuestoEdit.UsuarioId)">
+                <Field>
+                    <FieldLabel>Usuario ID</FieldLabel>
+                    <NumericEdit TValue="int" @bind-Value="presupuestoEdit.UsuarioId" Placeholder="ID de Usuario" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+
+            <Validator For="@(() => presupuestoEdit.TipoGastoId)">
+                <Field>
+                    <FieldLabel>Tipo de Gasto</FieldLabel>
+                    <Select TValue="int" @bind-Value="presupuestoEdit.TipoGastoId">
+                        <SelectItem TValue="int" Value="0">-- Seleccione un tipo de gasto --</SelectItem>
+                        @if (tiposDeGastoDisponibles != null) // Asumiendo que tienes esta lista
+                        {
+                            @foreach (var tipoGasto in tiposDeGastoDisponibles)
+                            {
+                                <SelectItem TValue="int" Value="@tipoGasto.Id">@tipoGasto.Nombre</SelectItem> 
+                                }
+                        }
+                    </Select>
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+
+            <Validator For="@(() => presupuestoEdit.Mes)">
+                <Field>
+                    <FieldLabel>Mes (1-12)</FieldLabel>
+                    <NumericEdit TValue="int" @bind-Value="presupuestoEdit.Mes" Placeholder="Mes" Min="1" Max="12" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+
+            <Validator For="@(() => presupuestoEdit.Anio)">
+                <Field>
+                    <FieldLabel>Año (ej. @DateTime.Now.Year)</FieldLabel>
+                    <NumericEdit TValue="int" @bind-Value="presupuestoEdit.Anio" Placeholder="Año" Min="2020" Max="2050" /> 
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+
+            <Validator For="@(() => presupuestoEdit.MontoPresupuestado)">
+                <Field>
+                    <FieldLabel>Monto Presupuestado</FieldLabel>
+                    <NumericEdit TValue="decimal" @bind-Value="presupuestoEdit.MontoPresupuestado" Placeholder="Monto" Step="0.01m" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+
         </Validations>
     </ModalBody>
     <ModalFooter>
@@ -38,6 +86,7 @@
 <Button Color="Color.Success" Clicked="NuevoPresupuesto">Nuevo Presupuesto</Button>
 
 @code {
+    List<TipoGastoDto> tiposDeGastoDisponibles = new();
     List<PresupuestoDto> presupuestos = new();
     PresupuestoDto presupuestoEdit = new();
     bool modalVisible = false;
@@ -46,12 +95,18 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await CargarTiposDeGastoDisponiblesAsync();
         await CargarPresupuestosAsync();
     }
 
     async Task CargarPresupuestosAsync()
     {
         presupuestos = await Http.GetFromJsonAsync<List<PresupuestoDto>>("api/Presupuestos") ?? new();
+    }
+
+    async Task CargarTiposDeGastoDisponiblesAsync()
+    {
+        tiposDeGastoDisponibles = await Http.GetFromJsonAsync<List<TipoGastoDto>>("api/TipoGasto") ?? new();
     }
 
     void NuevoPresupuesto()

@@ -1,3 +1,4 @@
+using ControlGastos.Core.DTOs;
 using ControlGastos.Core.Entities;
 using ControlGastos.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,13 @@ namespace ControlGastos.API.Controllers
         public PresupuestosController(IPresupuestoService service)
         {
             _service = service;
+        }
+
+        [HttpGet] 
+        public async Task<ActionResult<IEnumerable<PresupuestoDto>>> GetAll()
+        {
+            var presupuestos = await _service.GetAllAsync(); 
+            return Ok(presupuestos);
         }
 
         [HttpGet("{id}")]

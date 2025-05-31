@@ -12,5 +12,6 @@ namespace ControlGastos.Core.Interfaces.Repositories
         Task AddAsync(Presupuesto entity);
         Task UpdateAsync(Presupuesto entity);
         Task DeleteAsync(int id);
+        Task<IEnumerable<Presupuesto>> GetAllAsync();
     }
 }
