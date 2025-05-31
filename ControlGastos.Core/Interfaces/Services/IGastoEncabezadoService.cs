@@ -6,6 +6,7 @@ namespace ControlGastos.Core.Interfaces.Services
 {
     public interface IGastoEncabezadoService
     {
+        Task<IEnumerable<GastoEncabezado>> GetAllAsync();
         Task<GastoEncabezado> GetByIdAsync(int id);
         Task<IEnumerable<GastoEncabezado>> GetByUsuarioIdAsync(int usuarioId);
         Task AddAsync(GastoEncabezado entity);

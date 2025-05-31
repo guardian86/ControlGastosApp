@@ -18,5 +18,7 @@ namespace ControlGastos.Application.Services
         public Task AddAsync(GastoEncabezado entity) => _repository.AddAsync(entity);
         public Task UpdateAsync(GastoEncabezado entity) => _repository.UpdateAsync(entity);
         public Task DeleteAsync(int id) => _repository.DeleteAsync(id);
+        public Task<IEnumerable<GastoEncabezado>> GetAllAsync() => _repository.GetAllAsync();
+
     }
 }

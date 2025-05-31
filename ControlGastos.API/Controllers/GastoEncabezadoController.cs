@@ -1,3 +1,4 @@
+using ControlGastos.Core.DTOs;
 using ControlGastos.Core.Entities;
 using ControlGastos.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,14 @@ namespace ControlGastos.API.Controllers
         public GastoEncabezadoController(IGastoEncabezadoService service)
         {
             _service = service;
+        }
+
+
+        [HttpGet] 
+        public async Task<ActionResult<IEnumerable<GastoEncabezadoDto>>> GetAllGastos() 
+        {
+            var gastos = await _service.GetAllAsync(); 
+            return Ok(gastos);
         }
 
         [HttpGet("{id}")]
