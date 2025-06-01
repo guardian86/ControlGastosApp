@@ -2,6 +2,9 @@
 @inject HttpClient Http
 @attribute [Authorize]
 
+@using Blazorise
+@using Blazorise.DataGrid
+
 <PageTitle>Depósitos</PageTitle>
 <Heading Size="HeadingSize.Is3">Depósitos</Heading>
 
@@ -44,15 +47,15 @@
     </ModalHeader>
     <ModalBody>
         <Validations @ref="validator" Model="depositoEdit">
-            <Validator For="@(() => depositoEdit.Fecha)">
+            <Validation For="@(() => depositoEdit.Fecha)">
                 <Field>
                     <FieldLabel>Fecha</FieldLabel>
                     <DateEdit @bind-Date="depositoEdit.Fecha" />
-                    <ValidationMessage />
+                    <ValidationMessage For="@(() => depositoEdit.Fecha)" />
                 </Field>
-            </Validator>
+            </Validation>
 
-            <Validator For="@(() => depositoEdit.FondoMonetarioId)">
+            <Validation For="@(() => depositoEdit.FondoMonetarioId)">
                 <Field>
                     <FieldLabel>Fondo Monetario</FieldLabel>
                     <Select TValue="int" @bind-Value="depositoEdit.FondoMonetarioId">
@@ -65,17 +68,17 @@
                             }
                         }
                     </Select>
-                    <ValidationMessage />
+                    <ValidationMessage For="@(() => depositoEdit.FondoMonetarioId)" />
                 </Field>
-            </Validator>
+            </Validation>
 
-            <Validator For="@(() => depositoEdit.Monto)">
+            <Validation For="@(() => depositoEdit.Monto)">
                 <Field>
                     <FieldLabel>Monto</FieldLabel>
                     <NumericEdit TValue="decimal" @bind-Value="depositoEdit.Monto" />
-                    <ValidationMessage />
+                    <ValidationMessage For="@(() => depositoEdit.Monto)" />
                 </Field>
-            </Validator>
+            </Validation>
         </Validations>
     </ModalBody>
     <ModalFooter>
@@ -138,7 +141,9 @@
         {
             return;
         }
-
+        // Asignar el nombre antes de guardar
+        var fondo = fondosMonetariosDisponibles.FirstOrDefault(f => f.Id == depositoEdit.FondoMonetarioId);
+        depositoEdit.FondoMonetarioNombre = fondo?.Nombre;
         try
         {
             HttpResponseMessage response;
@@ -170,7 +175,7 @@
 
     void EditDeposito(DepositoDto deposito)
     {
-        // Crea una copia para edición para no modificar el original en la lista directamente
+        
         depositoEdit = new DepositoDto
         {
             Id = deposito.Id,

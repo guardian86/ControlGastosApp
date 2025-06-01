@@ -2,12 +2,15 @@
 @inject HttpClient Http
 @attribute [Authorize]
 
+@using Blazorise
+@using Blazorise.DataGrid
+@using Blazorise.Validation
 
 <PageTitle>Fondos Monetarios</PageTitle>
 
 <Heading Size="HeadingSize.Is3">Fondos Monetarios</Heading>
 
-<DataGrid TItem="FondoMonetarioDto" Data="fondos" AutoGenerateColumns="true" Responsive="true" Striped="true" Bordered="true">
+<DataGrid TItem="FondoMonetarioDto" Data="fondos" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
     <DataGridColumns>
         <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Id)" Caption="ID" />
         <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Nombre)" Caption="Nombre" />

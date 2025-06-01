@@ -1,16 +1,14 @@
 ﻿@typeparam TItem
 @* componente genérico para cualquier tipo de ítem *@
 
-<Buttons>
+<div class="d-flex gap-1">
     <Button Color="Color.Primary" Size="Size.Small" Clicked="OnEditClicked" Class="me-1">
         <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Edit" /> Editar
     </Button>
     <Button Color="Color.Danger" Size="Size.Small" Clicked="OnDeleteClicked">
         <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Trash" /> Eliminar
     </Button>
-</Buttons>
-
-
+</div>
 
 @code {
     [Parameter]

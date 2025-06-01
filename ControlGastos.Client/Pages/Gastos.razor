@@ -209,6 +209,12 @@
     {
         errorMessage = null;
         if (validator is null || !await validator.ValidateAll()) return;
+        // Asignar nombres a los detalles antes de guardar
+        foreach (var detalle in gastoEdit.Detalles)
+        {
+            var tipoGasto = tiposDeGastoDisponibles.FirstOrDefault(t => t.Id == detalle.TipoGastoId);
+            detalle.TipoGastoNombre = tipoGasto?.Nombre;
+        }
         try
         {
             HttpResponseMessage response;

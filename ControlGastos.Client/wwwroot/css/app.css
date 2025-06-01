@@ -141,4 +141,14 @@ code {
     font-weight: bold;
 }
 
+/* Modal text white and bold for all modals and Blazorise modals */
+.modal-content, .modal-body, .modal-header, .modal-footer {
+    color: #fff !important;
+    font-weight: bold !important;
+}
+.b-modal .modal-content, .b-modal .modal-header, .b-modal .modal-body, .b-modal .modal-footer {
+    color: #fff !important;
+    font-weight: bold !important;
+}
+
 

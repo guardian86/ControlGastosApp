@@ -1,6 +1,7 @@
 @page "/presupuestos"
 @inject HttpClient Http
-@attribute [Authorize]
+@using Blazorise
+@using Blazorise.DataGrid
 
 <PageTitle>Presupuestos</PageTitle>
 
@@ -35,7 +36,6 @@
     </ModalHeader>
     <ModalBody>
         <Validations @ref="validator" Model="presupuestoEdit">
-            
             <Validator For="@(() => presupuestoEdit.UsuarioId)">
                 <Field>
                     <FieldLabel>Usuario ID</FieldLabel>
@@ -43,24 +43,22 @@
                     <ValidationMessage />
                 </Field>
             </Validator>
-
             <Validator For="@(() => presupuestoEdit.TipoGastoId)">
                 <Field>
                     <FieldLabel>Tipo de Gasto</FieldLabel>
                     <Select TValue="int" @bind-Value="presupuestoEdit.TipoGastoId">
                         <SelectItem TValue="int" Value="0">-- Seleccione un tipo de gasto --</SelectItem>
-                        @if (tiposDeGastoDisponibles != null) // Asumiendo que tienes esta lista
+                        @if (tiposDeGastoDisponibles != null)
                         {
-                            @foreach (var tipoGasto in tiposDeGastoDisponibles)
+                            foreach (var tipoGasto in tiposDeGastoDisponibles)
                             {
-                                <SelectItem TValue="int" Value="@tipoGasto.Id">@tipoGasto.Nombre</SelectItem> 
-                                }
+                                <SelectItem TValue="int" Value="@tipoGasto.Id">@tipoGasto.Nombre</SelectItem>
+                            }
                         }
                     </Select>
                     <ValidationMessage />
                 </Field>
             </Validator>
-
             <Validator For="@(() => presupuestoEdit.Mes)">
                 <Field>
                     <FieldLabel>Mes (1-12)</FieldLabel>
@@ -68,15 +66,13 @@
                     <ValidationMessage />
                 </Field>
             </Validator>
-
             <Validator For="@(() => presupuestoEdit.Anio)">
                 <Field>
                     <FieldLabel>Año (ej. @DateTime.Now.Year)</FieldLabel>
-                    <NumericEdit TValue="int" @bind-Value="presupuestoEdit.Anio" Placeholder="Año" Min="2020" Max="2050" /> 
+                    <NumericEdit TValue="int" @bind-Value="presupuestoEdit.Anio" Placeholder="Año" Min="2020" Max="2050" />
                     <ValidationMessage />
                 </Field>
             </Validator>
-
             <Validator For="@(() => presupuestoEdit.MontoPresupuestado)">
                 <Field>
                     <FieldLabel>Monto Presupuestado</FieldLabel>
@@ -84,7 +80,6 @@
                     <ValidationMessage />
                 </Field>
             </Validator>
-
         </Validations>
     </ModalBody>
     <ModalFooter>
@@ -129,6 +124,9 @@
     async Task GuardarPresupuestoAsync()
     {
         if (validator is null || !await validator.ValidateAll()) return;
+        // Asignar el nombre antes de guardar
+        var tipoGasto = tiposDeGastoDisponibles.FirstOrDefault(t => t.Id == presupuestoEdit.TipoGastoId);
+        presupuestoEdit.TipoGastoNombre = tipoGasto?.Nombre;
         if (editando)
             await Http.PutAsJsonAsync($"api/Presupuestos/{presupuestoEdit.Id}", presupuestoEdit);
         else

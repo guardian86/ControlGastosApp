@@ -81,7 +81,7 @@ namespace ControlGastos.API.Controllers
             var fondoMonetarioExiste = await _context.FondosMonetarios.AnyAsync(f => f.Id == depositoDto.FondoMonetarioId);
             if (!fondoMonetarioExiste)
             {
-                // Puedes añadir un error específico al ModelState para el campo FondoMonetarioId
+                
                 ModelState.AddModelError(nameof(depositoDto.FondoMonetarioId), "El fondo monetario seleccionado no existe.");
                 return BadRequest(ModelState);
             }
