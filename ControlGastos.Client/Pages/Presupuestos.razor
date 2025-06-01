@@ -14,8 +14,18 @@
         <DataGridColumn TItem="PresupuestoDto" Field="@nameof(PresupuestoDto.Mes)" Caption="Mes" />
         <DataGridColumn TItem="PresupuestoDto" Field="@nameof(PresupuestoDto.Anio)" Caption="Año" />
         <DataGridColumn TItem="PresupuestoDto" Field="@nameof(PresupuestoDto.MontoPresupuestado)" Caption="Monto" />
-        <DataGridCommandColumn TItem="PresupuestoDto" />
+        <DataGridCommandColumn TItem="PresupuestoDto" Caption="Acciones" TextAlignment="TextAlignment.Center">
+            <DisplayTemplate>
+                <ComandosFila TItem="PresupuestoDto"
+                              Item="context"
+                              OnEdit="EditPresupuesto"
+                              OnDelete="DeletePresupuesto" />
+            </DisplayTemplate>
+        </DataGridCommandColumn>
     </DataGridColumns>
+    <EmptyTemplate>
+        <div class="text-center p-4">No hay presupuestos para mostrar.</div>
+    </EmptyTemplate>
 </DataGrid>
 
 <Modal @bind-Visible="modalVisible">

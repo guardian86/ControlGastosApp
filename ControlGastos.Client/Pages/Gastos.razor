@@ -13,8 +13,18 @@
         <DataGridColumn TItem="GastoEncabezadoDto" Field="@nameof(GastoEncabezadoDto.FondoMonetarioNombre)" Caption="Fondo Monetario" />
         <DataGridColumn TItem="GastoEncabezadoDto" Field="@nameof(GastoEncabezadoDto.NombreComercio)" Caption="Comercio" />
         <DataGridColumn TItem="GastoEncabezadoDto" Field="@nameof(GastoEncabezadoDto.TipoDocumento)" Caption="Tipo Documento" />
-        <DataGridCommandColumn TItem="GastoEncabezadoDto" />
+        <DataGridCommandColumn TItem="GastoEncabezadoDto" Caption="Acciones" TextAlignment="TextAlignment.Center">
+            <DisplayTemplate>
+                <ComandosFila TItem="GastoEncabezadoDto"
+                              Item="context"
+                              OnEdit="EditGasto"
+                              OnDelete="DeleteGasto" />
+            </DisplayTemplate>
+        </DataGridCommandColumn>
     </DataGridColumns>
+    <EmptyTemplate>
+        <div class="text-center p-4">No hay gastos para mostrar.</div>
+    </EmptyTemplate>
 </DataGrid>
 
 <Button Color="Color.Success" Clicked="NuevoGasto">Nuevo Gasto</Button>

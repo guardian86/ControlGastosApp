@@ -13,8 +13,18 @@
         <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Nombre)" Caption="Nombre" />
         <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Tipo)" Caption="Tipo" />
         <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Descripcion)" Caption="Descripción" />
-        <DataGridCommandColumn TItem="FondoMonetarioDto" />
+        <DataGridCommandColumn TItem="FondoMonetarioDto" Caption="Acciones" TextAlignment="TextAlignment.Center">
+            <DisplayTemplate>
+                <ComandosFila TItem="FondoMonetarioDto"
+                              Item="context"
+                              OnEdit="EditFondo"
+                              OnDelete="DeleteFondo" />
+            </DisplayTemplate>
+        </DataGridCommandColumn>
     </DataGridColumns>
+    <EmptyTemplate>
+        <div class="text-center p-4">No hay fondos monetarios para mostrar.</div>
+    </EmptyTemplate>
 </DataGrid>
 
 <Modal @bind-Visible="modalVisible">
@@ -28,16 +38,20 @@
                     <ValidationMessage />
                 </Field>
             </Validator>
-            <Validator For="@(() => fondoEdit.Tipo)">
-                <Field>
-                    <FieldLabel>Tipo</FieldLabel>
-                    <Select TValue="string" @bind-Value="fondoEdit.Tipo">
-                        <SelectItem Value="1">Cuenta Bancaria</SelectItem>
-                        <SelectItem Value="2">Caja Menuda</SelectItem>
-                    </Select>
-                    <ValidationMessage />
-                </Field>
-            </Validator>
+            <Validations @ref="validator" Model="fondoEdit">
+                <Validator For="@(() => fondoEdit.Tipo)">
+                    <Field>
+                        <FieldLabel>Tipo</FieldLabel>
+                        <Select TValue="string" @bind-Value="fondoEdit.Tipo">
+                            <SelectItem TValue="string" Value="@(null)">-- Seleccione un tipo --</SelectItem>
+                            <SelectItem Value="1">Cuenta Bancaria</SelectItem>
+                            <SelectItem Value="2">Caja Menuda</SelectItem>
+                        </Select>
+                        <ValidationMessage />
+                    </Field>
+                </Validator>
+            </Validations>
+            <p>Valor actual de fondoEdit.Tipo: @fondoEdit.Tipo</p> <Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
             <Validator For="@(() => fondoEdit.Descripcion)">
                 <Field>
                     <FieldLabel>Descripción</FieldLabel>
@@ -76,9 +90,10 @@
 
     void NuevoFondo()
     {
-        fondoEdit = new FondoMonetarioDto();
+        fondoEdit = new FondoMonetarioDto { Tipo = "1" };
         editando = false;
         modalVisible = true;
+        if (validator != null) validator.ClearAll();
     }
 
     private async Task GuardarFondoAsync()

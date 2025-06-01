@@ -21,13 +21,18 @@
                 @context.Monto.ToString("C")
             </DisplayTemplate>
         </DataGridColumn>
-        <DataGridCommandColumn TItem="DepositoDto" Caption="Acciones">
-            <Buttons>
-               @*  <Button Color="Color.Primary" Size="Size.Small" Clicked="@(() => EditDeposito(context))">Editar</Button>
-                <Button Color="Color.Danger" Size="Size.Small" Clicked="@(() => DeleteDeposito(context))">Eliminar</Button> *@
-            </Buttons>
+        <DataGridCommandColumn TItem="DepositoDto" Caption="Acciones" TextAlignment="TextAlignment.Center">
+            <DisplayTemplate>
+                <ComandosFila TItem="DepositoDto"
+                              Item="context"
+                              OnEdit="EditDeposito"
+                              OnDelete="DeleteDeposito" />
+            </DisplayTemplate>
         </DataGridCommandColumn>
     </DataGridColumns>
+    <EmptyTemplate>
+        <div class="text-center p-4">No hay depositos para mostrar.</div>
+    </EmptyTemplate>
 </DataGrid>
 
 <Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
@@ -82,7 +87,7 @@
 
 @code {
     List<DepositoDto> depositos = new();
-    DepositoDto depositoEdit = new(); 
+    DepositoDto depositoEdit = new();
     bool modalVisible = false;
     bool editando = false;
     Validations? validator;
@@ -93,14 +98,14 @@
     protected override async Task OnInitializedAsync()
     {
         await CargarFondosMonetariosDisponiblesAsync();
-        await CargarDepositosAsync(); 
+        await CargarDepositosAsync();
     }
 
     async Task CargarDepositosAsync()
     {
         try
         {
-            var response = await Http.GetAsync("api/Depositos"); 
+            var response = await Http.GetAsync("api/Depositos");
             if (response.IsSuccessStatusCode)
             {
                 depositos = await response.Content.ReadFromJsonAsync<List<DepositoDto>>() ?? new List<DepositoDto>();
@@ -119,10 +124,10 @@
 
     void NuevoDeposito()
     {
-        
-        depositoEdit = new DepositoDto { Fecha = DateTime.Today }; 
+
+        depositoEdit = new DepositoDto { Fecha = DateTime.Today };
         editando = false;
-        errorMessage = null; 
+        errorMessage = null;
         modalVisible = true;
     }
 
@@ -131,7 +136,7 @@
         errorMessage = null;
         if (validator is null || !await validator.ValidateAll())
         {
-            return; 
+            return;
         }
 
         try
@@ -163,16 +168,16 @@
         StateHasChanged(); // Para actualizar la UI
     }
 
-    void EditDeposito(DepositoDto deposito) 
+    void EditDeposito(DepositoDto deposito)
     {
         // Crea una copia para edición para no modificar el original en la lista directamente
-        depositoEdit = new DepositoDto 
-        { 
+        depositoEdit = new DepositoDto
+        {
             Id = deposito.Id,
-            Fecha = deposito.Fecha, 
-            FondoMonetarioId = deposito.FondoMonetarioId, 
-            FondoMonetarioNombre = deposito.FondoMonetarioNombre, 
-            Monto = deposito.Monto 
+            Fecha = deposito.Fecha,
+            FondoMonetarioId = deposito.FondoMonetarioId,
+            FondoMonetarioNombre = deposito.FondoMonetarioNombre,
+            Monto = deposito.Monto
         };
         editando = true;
         errorMessage = null;
@@ -181,13 +186,13 @@
 
     async Task DeleteDeposito(DepositoDto deposito)
     {
-        
+
         try
         {
             var response = await Http.DeleteAsync($"api/Depositos/{deposito.Id}");
             if (!response.IsSuccessStatusCode)
             {
-                 var errorContent = await response.Content.ReadAsStringAsync();
+                var errorContent = await response.Content.ReadAsStringAsync();
                 errorMessage = $"Error al eliminar: {response.ReasonPhrase} - {errorContent}";
             }
             await CargarDepositosAsync(); // Recarga la lista
