@@ -38,9 +38,20 @@ namespace ControlGastos.API.Controllers
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] TipoGastoDto tipoDto)
         {
+            // Calcular el siguiente código correlativo automáticamente
+            var tipos = await _service.GetAllAsync();
+            int max = 0;
+            foreach (var t in tipos)
+            {
+                if (int.TryParse(t.Codigo, out int cod) && cod > max)
+                    max = cod;
+            }
+            var nextCodigo = (max + 1).ToString("D3");
             var tipo = _mapper.Map<TipoGasto>(tipoDto);
+            tipo.Codigo = nextCodigo; // Sobrescribe el código
             await _service.AddAsync(tipo);
             tipoDto.Id = tipo.Id;
+            tipoDto.Codigo = tipo.Codigo;
             return CreatedAtAction(nameof(Get), new { id = tipo.Id }, tipoDto);
         }
 

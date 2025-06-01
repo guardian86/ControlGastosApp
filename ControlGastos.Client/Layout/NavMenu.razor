@@ -40,7 +40,26 @@
                 </BarDropdownItem>
             </BarDropdown>
         </BarStart>
+        <BarEnd>
+            <BarItem>
+                <BarLink To="/login">
+                    <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.User" Class="me-2" /> Iniciar Sesión
+                </BarLink>
+            </BarItem>
+            <BarItem>
+                <Button Color="Color.Danger" Clicked="Logout">Cerrar Sesión</Button>
+            </BarItem>
+        </BarEnd>
     </BarMenu>
 </Bar>
+
+@code {
+    [Inject] NavigationManager NavigationManager { get; set; } = default!;
+    void Logout()
+    {
+        // Aquí puedes limpiar localStorage/sessionStorage si implementas JWT
+        NavigationManager.NavigateTo("/login", true);
+    }
+}
 
 

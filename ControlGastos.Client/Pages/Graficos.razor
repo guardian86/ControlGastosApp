@@ -10,22 +10,18 @@
 <Validations @ref="validator" Model="filtroGrafico">
     <Row>
         <Column ColumnSize="ColumnSize.IsAuto">
-            <Validator For="@(() => filtroGrafico.FechaInicio)">
-                <Field>
-                    <FieldLabel>Fecha Inicio</FieldLabel>
-                    <DateEdit @bind-Date="filtroGrafico.FechaInicio" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
+            <Field>
+                <FieldLabel>Fecha Inicio</FieldLabel>
+                <DateEdit @bind-Date="filtroGrafico.FechaInicio" />
+                <ValidationMessage TValue="DateTime?" For="@(() => filtroGrafico.FechaInicio)" />
+            </Field>
         </Column>
         <Column ColumnSize="ColumnSize.IsAuto">
-            <Validator For="@(() => filtroGrafico.FechaFin)">
-                <Field>
-                    <FieldLabel>Fecha Fin</FieldLabel>
-                    <DateEdit @bind-Date="filtroGrafico.FechaFin" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
+            <Field>
+                <FieldLabel>Fecha Fin</FieldLabel>
+                <DateEdit @bind-Date="filtroGrafico.FechaFin" />
+                <ValidationMessage TValue="DateTime?" For="@(() => filtroGrafico.FechaFin)" />
+            </Field>
         </Column>
         <Column ColumnSize="ColumnSize.IsAuto" Style="align-self: flex-end; padding-bottom: 1rem;"> 
             <Button Color="Color.Primary" Clicked="BuscarGrafico">Buscar</Button>

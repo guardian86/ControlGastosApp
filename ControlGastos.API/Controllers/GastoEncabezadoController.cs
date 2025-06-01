@@ -100,8 +100,36 @@ namespace ControlGastos.API.Controllers
         public async Task<ActionResult> Post([FromBody] GastoEncabezadoDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (dto.Detalles == null || !dto.Detalles.Any())
+                return BadRequest("Debe ingresar al menos un detalle de gasto.");
+
             var fondo = await _context.FondosMonetarios.FirstOrDefaultAsync(f => f.Nombre == dto.FondoMonetarioNombre);
             if (fondo == null) return BadRequest("Fondo monetario no válido");
+
+            // Validación de sobregiro de presupuesto
+            var alertas = new List<string>();
+            foreach (var d in dto.Detalles)
+            {
+                var tipoGasto = await _context.TiposGasto.FirstOrDefaultAsync(t => t.Nombre == d.TipoGastoNombre);
+                if (tipoGasto == null) continue;
+                var mes = dto.Fecha.Month;
+                var anio = dto.Fecha.Year;
+                var presupuesto = await _context.Presupuestos.FirstOrDefaultAsync(p => p.TipoGastoId == tipoGasto.Id && p.Mes == mes && p.Anio == anio);
+                var ejecutado = _context.GastoDetalles
+                    .Include(gd => gd.GastoEncabezado)
+                    .Where(gd => gd.TipoGastoId == tipoGasto.Id && gd.GastoEncabezado.Fecha.Month == mes && gd.GastoEncabezado.Fecha.Year == anio)
+                    .Sum(gd => gd.Monto);
+                var total = ejecutado + d.Monto;
+                if (presupuesto != null && total > presupuesto.MontoPresupuestado)
+                {
+                    alertas.Add($"Tipo de Gasto: {tipoGasto.Nombre} - Presupuestado: {presupuesto.MontoPresupuestado:C}, Ejecutado: {ejecutado:C}, Nuevo Gasto: {d.Monto:C}, Sobregiro: {(total - presupuesto.MontoPresupuestado):C}");
+                }
+            }
+            if (alertas.Any())
+            {
+                return BadRequest(new { message = "Presupuesto sobregirado en los siguientes tipos de gasto:", detalles = alertas });
+            }
+
             var detalles = new List<GastoDetalle>();
             foreach (var d in dto.Detalles)
             {
@@ -130,10 +158,38 @@ namespace ControlGastos.API.Controllers
         public async Task<ActionResult> Put(int id, [FromBody] GastoEncabezadoDto dto)
         {
             if (id != dto.Id) return BadRequest();
+            if (dto.Detalles == null || !dto.Detalles.Any())
+                return BadRequest("Debe ingresar al menos un detalle de gasto.");
+
             var encabezado = await _context.GastoEncabezados.Include(x => x.Detalles).FirstOrDefaultAsync(x => x.Id == id);
             if (encabezado == null) return NotFound();
             var fondo = await _context.FondosMonetarios.FirstOrDefaultAsync(f => f.Nombre == dto.FondoMonetarioNombre);
             if (fondo == null) return BadRequest("Fondo monetario no válido");
+
+            // Validación de sobregiro de presupuesto
+            var alertas = new List<string>();
+            foreach (var d in dto.Detalles)
+            {
+                var tipoGasto = await _context.TiposGasto.FirstOrDefaultAsync(t => t.Nombre == d.TipoGastoNombre);
+                if (tipoGasto == null) continue;
+                var mes = dto.Fecha.Month;
+                var anio = dto.Fecha.Year;
+                var presupuesto = await _context.Presupuestos.FirstOrDefaultAsync(p => p.TipoGastoId == tipoGasto.Id && p.Mes == mes && p.Anio == anio);
+                var ejecutado = _context.GastoDetalles
+                    .Include(gd => gd.GastoEncabezado)
+                    .Where(gd => gd.TipoGastoId == tipoGasto.Id && gd.GastoEncabezado.Fecha.Month == mes && gd.GastoEncabezado.Fecha.Year == anio && gd.GastoEncabezado.Id != id)
+                    .Sum(gd => gd.Monto);
+                var total = ejecutado + d.Monto;
+                if (presupuesto != null && total > presupuesto.MontoPresupuestado)
+                {
+                    alertas.Add($"Tipo de Gasto: {tipoGasto.Nombre} - Presupuestado: {presupuesto.MontoPresupuestado:C}, Ejecutado: {ejecutado:C}, Nuevo Gasto: {d.Monto:C}, Sobregiro: {(total - presupuesto.MontoPresupuestado):C}");
+                }
+            }
+            if (alertas.Any())
+            {
+                return BadRequest(new { message = "Presupuesto sobregirado en los siguientes tipos de gasto:", detalles = alertas });
+            }
+
             encabezado.Fecha = dto.Fecha;
             encabezado.FondoMonetarioId = fondo.Id;
             encabezado.Observaciones = dto.Observaciones;

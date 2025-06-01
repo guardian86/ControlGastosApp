@@ -4,7 +4,7 @@ using Blazorise.Icons.FontAwesome;
 using ControlGastos.Client;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-
+using Microsoft.JSInterop;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -20,6 +20,8 @@ builder.Services.AddBlazorise(options =>
 })
     .AddBootstrap5Providers()
     .AddFontAwesomeIcons();
+
+builder.Services.AddScoped<AuthService>();
 
 var host = builder.Build();
 await host.RunAsync();

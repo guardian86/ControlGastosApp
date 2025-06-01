@@ -34,8 +34,8 @@ namespace ControlGastos.API.Controllers
             {
                 TipoGastoNombre = tipo.Nombre,
                 Presupuestado = presupuestos.Where(p => p.TipoGastoId == tipo.Id &&
-                    new DateTime(p.Anio, p.Mes, 1) >= new DateTime(fechaInicio.Year, fechaInicio.Month, 1) &&
-                    new DateTime(p.Anio, p.Mes, 1) <= new DateTime(fechaFin.Year, fechaFin.Month, 1))
+                    new DateTime(p.Anio, p.Mes, 1, 0, 0, 0, DateTimeKind.Unspecified) >= new DateTime(fechaInicio.Year, fechaInicio.Month, 1, 0, 0, 0, DateTimeKind.Unspecified) &&
+                    new DateTime(p.Anio, p.Mes, 1, 0, 0, 0, DateTimeKind.Unspecified) <= new DateTime(fechaFin.Year, fechaFin.Month, 1, 0, 0, 0, DateTimeKind.Unspecified))
                     .Sum(p => p.MontoPresupuestado),
                 Ejecutado = detalles.Where(d => d.TipoGastoId == tipo.Id).Sum(d => d.Monto)
             }).ToList();
