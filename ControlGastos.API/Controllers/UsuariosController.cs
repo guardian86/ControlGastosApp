@@ -26,6 +26,7 @@ namespace ControlGastos.API.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.UserName == request.UserName && u.Password == request.Password);

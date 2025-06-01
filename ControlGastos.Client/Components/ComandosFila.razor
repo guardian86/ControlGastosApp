@@ -1,0 +1,40 @@
+﻿@typeparam TItem
+@* componente genérico para cualquier tipo de ítem *@
+
+<Buttons>
+    <Button Color="Color.Primary" Size="Size.Small" Clicked="OnEditClicked" Class="me-1">
+        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Edit" /> Editar
+    </Button>
+    <Button Color="Color.Danger" Size="Size.Small" Clicked="OnDeleteClicked">
+        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Trash" /> Eliminar
+    </Button>
+</Buttons>
+
+
+
+@code {
+    [Parameter]
+    public TItem? Item { get; set; } // El objeto de la fila (ej. TipoGastoDto)
+
+    [Parameter]
+    public EventCallback<TItem> OnEdit { get; set; } // Evento para notificar la edición
+
+    [Parameter]
+    public EventCallback<TItem> OnDelete { get; set; } // Evento para notificar la eliminación
+
+    private async Task OnEditClicked()
+    {
+        if (Item != null && OnEdit.HasDelegate)
+        {
+            await OnEdit.InvokeAsync(Item);
+        }
+    }
+
+    private async Task OnDeleteClicked()
+    {
+        if (Item != null && OnDelete.HasDelegate)
+        {
+            await OnDelete.InvokeAsync(Item);
+        }
+    }
+}

@@ -2,6 +2,7 @@
 @inject HttpClient Http
 @attribute [Authorize]
 
+
 <PageTitle>Gráfico Comparativo de Presupuesto y Ejecución</PageTitle>
 <Heading Size="HeadingSize.Is3">Gráfico Comparativo de Presupuesto y Ejecución</Heading>
 
@@ -23,7 +24,7 @@
                 <ValidationMessage TValue="DateTime?" For="@(() => filtroGrafico.FechaFin)" />
             </Field>
         </Column>
-        <Column ColumnSize="ColumnSize.IsAuto" Style="align-self: flex-end; padding-bottom: 1rem;"> 
+        <Column ColumnSize="ColumnSize.IsAuto" Style="align-self: flex-end; padding-bottom: 1rem;">
             <Button Color="Color.Primary" Clicked="BuscarGrafico">Buscar</Button>
         </Column>
     </Row>
@@ -47,10 +48,10 @@
 
     async Task BuscarGrafico()
     {
-        errorMessage = null; 
-        if (validator is null || !await validator.ValidateAll()) 
+        errorMessage = null;
+        if (validator is null || !await validator.ValidateAll())
         {
-            return; 
+            return;
         }
 
         try
@@ -59,6 +60,16 @@
             {
                 var url = $"api/Graficos?fechaInicio={filtroGrafico.FechaInicio.Value:yyyy-MM-dd}&fechaFin={filtroGrafico.FechaFin.Value:yyyy-MM-dd}";
                 datosParaElGrafico = await Http.GetFromJsonAsync<List<GraficoDto>>(url) ?? new List<GraficoDto>();
+
+                if (chartData == null)
+                    chartData = new ChartData<decimal>();
+
+                if (chartData.Labels == null)
+                    chartData.Labels = new List<object>();
+
+                if (chartData.Datasets == null)
+                    chartData.Datasets = new List<Blazorise.Charts.ChartDataset<decimal>>();
+
 
                 // Lógica para actualizar chartData con datosParaElGrafico
                 chartData.Labels = datosParaElGrafico.Select(x => (object?)x.TipoGastoNombre ?? string.Empty).ToList();

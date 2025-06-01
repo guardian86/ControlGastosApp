@@ -2,41 +2,74 @@
 @inject HttpClient Http
 @attribute [Authorize]
 
-<PageTitle>Tipos de Gasto</PageTitle>
 
+<PageTitle>Tipos de Gasto</PageTitle>
 <Heading Size="HeadingSize.Is3">Tipos de Gasto</Heading>
+
+<Button Color="Color.Warning" Clicked="NuevoTipoGasto" Class="mb-3">Nuevo Tipo de Gasto</Button>
 
 <DataGrid TItem="TipoGastoDto" Data="tiposGasto" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
     <DataGridColumns>
-        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Id)" Caption="ID" />
-        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Codigo)" Caption="Código" />
-        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Nombre)" Caption="Nombre" />
-        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Descripcion)" Caption="Descripción" />
-        <DataGridCommandColumn TItem="TipoGastoDto" />
+        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Id)" Caption="ID" Sortable="true" />
+        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Codigo)" Caption="Código" Sortable="true" />
+        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Nombre)" Caption="Nombre" Sortable="true" />
+        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Descripcion)" Caption="Descripción" Sortable="true" />
+        
+        <DataGridCommandColumn TItem="TipoGastoDto" Caption="Acciones" TextAlignment="TextAlignment.Center">
+            <DisplayTemplate>
+                <ComandosFila TItem="TipoGastoDto"
+                              Item="context"
+                              OnEdit="EditTipoGasto"
+                              OnDelete="DeleteTipoGasto" />
+            </DisplayTemplate>
+        </DataGridCommandColumn>
+
     </DataGridColumns>
+    <EmptyTemplate>
+        <div class="text-center p-4">
+            No hay tipos de gasto para mostrar.
+        </div>
+    </EmptyTemplate>
 </DataGrid>
 
-<ModalBody>
-    <Validations @ref="validator" Model="tipoGastoEdit">
-        <Validator For="@(() => tipoGastoEdit.Nombre)">
-            <Field>
-                <FieldLabel>Nombre</FieldLabel>
-                <TextEdit @bind-Text="tipoGastoEdit.Nombre" Placeholder="Nombre del tipo de gasto" />
-                <ValidationMessage />
-            </Field>
-        </Validator>
-        <Validator For="@(() => tipoGastoEdit.Descripcion)">
-            <Field>
-                <FieldLabel>Descripción</FieldLabel>
-                <TextEdit @bind-Text="tipoGastoEdit.Descripcion" Placeholder="Descripción (opcional)" />
-                <ValidationMessage />
-            </Field>
-        </Validator>
-    </Validations>
-    <Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
-</ModalBody>
+<Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))" Class="mt-3">@errorMessage</Alert>
 
-<Button Color="Color.Success" Clicked="NuevoTipoGasto">Nuevo Tipo de Gasto</Button>
+<Modal @bind-Visible="modalVisible">
+    <ModalHeader>
+        <ModalTitle>@(editando ? "Editar Tipo de Gasto" : "Nuevo Tipo de Gasto")</ModalTitle>
+        <CloseButton Clicked="() => modalVisible = false" />
+    </ModalHeader>
+    <ModalBody>
+        <Validations @ref="validator" Model="tipoGastoEdit">
+            @if(editando && !string.IsNullOrEmpty(tipoGastoEdit.Codigo))
+            {
+                <Field>
+                    <FieldLabel>Código</FieldLabel>
+                    <TextEdit Text="@tipoGastoEdit.Codigo" Plaintext /> 
+                </Field>
+            }
+            <Validator For="@(() => tipoGastoEdit.Nombre)">
+                <Field>
+                    <FieldLabel>Nombre</FieldLabel>
+                    <TextEdit @bind-Text="tipoGastoEdit.Nombre" Placeholder="Nombre del tipo de gasto" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+            <Validator For="@(() => tipoGastoEdit.Descripcion)">
+                <Field>
+                    <FieldLabel>Descripción</FieldLabel>
+                    <TextEdit @bind-Text="tipoGastoEdit.Descripcion" Placeholder="Descripción (opcional)" />
+                    <ValidationMessage />
+                </Field>
+            </Validator>
+        </Validations>
+        </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Secondary" Clicked="() => modalVisible = false">Cancelar</Button>
+        <Button Color="Color.Primary" Clicked="GuardarTipoGastoAsync">Guardar</Button>
+    </ModalFooter>
+</Modal>
+
 
 @code {
     List<TipoGastoDto> tiposGasto = new();
@@ -53,52 +86,107 @@
 
     async Task CargarTiposGastoAsync()
     {
-        tiposGasto = await Http.GetFromJsonAsync<List<TipoGastoDto>>("api/TipoGasto") ?? new();
+        errorMessage = null; 
+        try
+        {
+            var response = await Http.GetAsync("api/TipoGasto");
+            if (response.IsSuccessStatusCode)
+            {
+                tiposGasto = await response.Content.ReadFromJsonAsync<List<TipoGastoDto>>() ?? new List<TipoGastoDto>();
+            }
+            else
+            {
+                errorMessage = $"Error al cargar tipos de gasto: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Excepción al cargar tipos de gasto: {ex.Message}";
+        }
     }
 
     void NuevoTipoGasto()
     {
-        tipoGastoEdit = new TipoGastoDto();
+        tipoGastoEdit = new TipoGastoDto(); // Crea un nuevo objeto para el formulario
         editando = false;
-        modalVisible = true;
+        errorMessage = null; // Limpia errores anteriores
+        if (validator != null) { validator.ClearAll(); } // Limpia validaciones anteriores del modal
+        modalVisible = true; // Muestra el modal
     }
 
     async Task GuardarTipoGastoAsync()
     {
         errorMessage = null;
-        if (validator is null || !await validator.ValidateAll()) return;
+        if (validator is null || !await validator.ValidateAll()) 
+        {
+            return;
+        }
+        
         try
         {
             HttpResponseMessage response;
             if (editando)
+            {
                 response = await Http.PutAsJsonAsync($"api/TipoGasto/{tipoGastoEdit.Id}", tipoGastoEdit);
+            }
             else
+            {
                 response = await Http.PostAsJsonAsync("api/TipoGasto", tipoGastoEdit);
+            }
+
             if (!response.IsSuccessStatusCode)
             {
-                var error = await response.Content.ReadAsStringAsync();
-                errorMessage = $"Error al guardar: {error}";
-                return;
+                var errorContent = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Error al guardar: {response.ReasonPhrase} - {errorContent}";
+                return; 
             }
-            modalVisible = false;
-            await CargarTiposGastoAsync();
+            modalVisible = false; 
+            await CargarTiposGastoAsync(); 
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error inesperado: {ex.Message}";
+            errorMessage = $"Error inesperado al guardar: {ex.Message}";
         }
+        StateHasChanged(); 
     }
 
     void EditTipoGasto(TipoGastoDto tipo)
     {
-        tipoGastoEdit = new TipoGastoDto { Id = tipo.Id, Codigo = tipo.Codigo, Nombre = tipo.Nombre, Descripcion = tipo.Descripcion };
+        tipoGastoEdit = new TipoGastoDto 
+        { 
+            Id = tipo.Id, 
+            Codigo = tipo.Codigo,
+            Nombre = tipo.Nombre, 
+            Descripcion = tipo.Descripcion 
+        };
         editando = true;
+        errorMessage = null;
+        if (validator != null) { validator.ClearAll(); }
         modalVisible = true;
     }
 
     async Task DeleteTipoGasto(TipoGastoDto tipo)
     {
-        await Http.DeleteAsync($"api/TipoGasto/{tipo.Id}");
-        await CargarTiposGastoAsync();
+        errorMessage = null;
+
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"¿Eliminar '{tipo.Nombre}'?");
+        if (!confirmed) return;
+
+        try
+        {
+            var response = await Http.DeleteAsync($"api/TipoGasto/{tipo.Id}");
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Error al eliminar: {response.ReasonPhrase} - {errorContent}";
+            }
+            await CargarTiposGastoAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error inesperado al eliminar: {ex.Message}";
+        }
+        StateHasChanged();
     }
+
 }
