@@ -79,6 +79,7 @@
     </ModalFooter>
 </Modal>
 
+
 @code {
     List<DepositoDto> depositos = new();
     DepositoDto depositoEdit = new(); 
@@ -92,14 +93,14 @@
     protected override async Task OnInitializedAsync()
     {
         await CargarFondosMonetariosDisponiblesAsync();
-        await CargarDepositosAsync(); // Llama a cargar los depósitos también
+        await CargarDepositosAsync(); 
     }
 
     async Task CargarDepositosAsync()
     {
         try
         {
-            var response = await Http.GetAsync("api/Depositos"); // Asegúrate que el endpoint sea correcto
+            var response = await Http.GetAsync("api/Depositos"); 
             if (response.IsSuccessStatusCode)
             {
                 depositos = await response.Content.ReadFromJsonAsync<List<DepositoDto>>() ?? new List<DepositoDto>();

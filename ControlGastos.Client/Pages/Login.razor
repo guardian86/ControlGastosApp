@@ -15,7 +15,7 @@
     </Field>
     <Field>
         <FieldLabel>Contraseña</FieldLabel>
-        <TextEdit @bind-Text="loginModel.Password" Type="TextEditType.Password" placeholder="Ingrese su password" />
+        <TextEdit @bind-Text="loginModel.Password" Type="password" AllowPasswordVisible="true" Placeholder="Ingrese su contraseña" />
         <ValidationMessage TValue="string" For="@(() => loginModel.Password)" />
     </Field>
     <Button Color="Color.Primary" Clicked="LoginAsync">Ingresar</Button>
@@ -27,8 +27,12 @@
     private LoginModel loginModel = new();
     private Validations? validator;
     private string errorMessage = string.Empty;
+    private string passwordType = "password";
 
-   
+    private void TogglePasswordVisibility()
+    {
+        passwordType = passwordType == "password" ? "text" : "password";
+    }
 
     private async Task LoginAsync()
     {
@@ -46,7 +50,7 @@
                 {
                     await AuthService.SetTokenAsync(result.Token);
                     AuthService.AttachTokenToHttpClient(Http, result.Token);
-                    Navigation.NavigateTo("/");
+                    Navigation.NavigateTo("/home");
                 }
                 else
                 {

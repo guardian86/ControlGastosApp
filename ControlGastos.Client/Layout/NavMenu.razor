@@ -42,7 +42,7 @@
         </BarStart>
         <BarEnd>
             <BarItem>
-                <BarLink To="/login">
+                <BarLink To="/">
                     <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.User" Class="me-2" /> Iniciar Sesión
                 </BarLink>
             </BarItem>
@@ -55,6 +55,7 @@
 
 @code {
     [Inject] NavigationManager NavigationManager { get; set; } = default!;
+    
     void Logout()
     {
         // Aquí puedes limpiar localStorage/sessionStorage si implementas JWT
