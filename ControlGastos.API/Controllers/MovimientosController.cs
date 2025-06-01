@@ -1,5 +1,6 @@
 using ControlGastos.Core.DTOs;
 using ControlGastos.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -11,6 +12,7 @@ namespace ControlGastos.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class MovimientosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

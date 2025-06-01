@@ -1,5 +1,6 @@
 using ControlGastos.Core.Entities;
 using ControlGastos.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +14,7 @@ namespace ControlGastos.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class UsuariosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -46,15 +48,13 @@ namespace ControlGastos.API.Controllers
                 Audience = jwtSettings["Audience"],
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
+
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var jwt = tokenHandler.WriteToken(token);
             return Ok(new { token = jwt, user.UserName, user.Rol });
         }
 
-        public class LoginRequest
-        {
-            public string UserName { get; set; } = string.Empty;
-            public string Password { get; set; } = string.Empty;
-        }
+
+
     }
 }

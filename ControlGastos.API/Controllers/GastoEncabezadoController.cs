@@ -6,11 +6,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ControlGastos.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ControlGastos.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class GastoEncabezadoController : ControllerBase
     {
         private readonly IGastoEncabezadoService _service;

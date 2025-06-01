@@ -1,6 +1,7 @@
 using ControlGastos.Core.DTOs;
 using ControlGastos.Core.Entities;
 using ControlGastos.Core.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ namespace ControlGastos.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PresupuestosController : ControllerBase
     {
         private readonly IPresupuestoService _service;
@@ -17,10 +19,10 @@ namespace ControlGastos.API.Controllers
             _service = service;
         }
 
-        [HttpGet] 
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<PresupuestoDto>>> GetAll()
         {
-            var presupuestos = await _service.GetAllAsync(); 
+            var presupuestos = await _service.GetAllAsync();
             return Ok(presupuestos);
         }
 

@@ -28,11 +28,7 @@
     private Validations? validator;
     private string errorMessage = string.Empty;
 
-    public class LoginModel
-    {
-        public string UserName { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-    }
+   
 
     private async Task LoginAsync()
     {
@@ -69,10 +65,5 @@
         }
     }
 
-    public class LoginResult
-    {
-        public string Token { get; set; } = string.Empty;
-        public string Username { get; set; } = string.Empty;
-        public string Role { get; set; } = string.Empty;
-    }
+  
 }

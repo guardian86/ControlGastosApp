@@ -1,5 +1,6 @@
 using ControlGastos.Core.Entities;
 using ControlGastos.Core.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ namespace ControlGastos.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class GastoDetalleController : ControllerBase
     {
         private readonly IGastoDetalleService _service;
