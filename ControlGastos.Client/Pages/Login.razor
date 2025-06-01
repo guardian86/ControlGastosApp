@@ -1,4 +1,4 @@
-@page "/login"
+@page "/"
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject AuthService AuthService
@@ -10,12 +10,12 @@
 <Validations @ref="validator" Model="loginModel">
     <Field>
         <FieldLabel>Usuario</FieldLabel>
-        <TextEdit @bind-Text="loginModel.UserName" />
+        <TextEdit @bind-Text="loginModel.UserName" placeholder="Ingrese su usuario" />
         <ValidationMessage TValue="string" For="@(() => loginModel.UserName)" />
     </Field>
     <Field>
         <FieldLabel>Contraseña</FieldLabel>
-        <TextEdit @bind-Text="loginModel.Password" Type="TextEditType.Password" />
+        <TextEdit @bind-Text="loginModel.Password" Type="TextEditType.Password" placeholder="Ingrese su password" />
         <ValidationMessage TValue="string" For="@(() => loginModel.Password)" />
     </Field>
     <Button Color="Color.Primary" Clicked="LoginAsync">Ingresar</Button>

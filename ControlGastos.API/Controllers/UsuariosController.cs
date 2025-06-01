@@ -30,7 +30,7 @@ namespace ControlGastos.API.Controllers
             if (user == null)
                 return Unauthorized("Usuario o contraseña incorrectos");
 
-            // Generate JWT token
+            // JWT 
             var jwtSettings = _configuration.GetSection("Jwt");
             var key = Encoding.UTF8.GetBytes(jwtSettings["Key"] ?? "");
             var tokenHandler = new JwtSecurityTokenHandler();
