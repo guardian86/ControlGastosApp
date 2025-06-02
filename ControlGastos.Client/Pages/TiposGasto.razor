@@ -59,7 +59,7 @@
                 <h5 class="modal-title">@(editando ? "Editar Tipo de Gasto" : "Nuevo Tipo de Gasto")</h5>
                 <button type="button" class="btn-close" @onclick="() => modalVisible = false"></button>
             </div>
-            <form onsubmit="return false;" @onsubmit="GuardarTipoGastoAsync">
+            <form @onsubmit="GuardarTipoGastoAsync">
                 <div class="modal-body">
                     @if (editando && !string.IsNullOrEmpty(tipoGastoEdit.Codigo))
                     {

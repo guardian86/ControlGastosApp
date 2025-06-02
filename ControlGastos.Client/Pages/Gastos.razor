@@ -1,8 +1,9 @@
 @page "/gastos"
 @inject HttpClient Http
-@using System.ComponentModel.DataAnnotations
-
-<PageTitle>Registros de Gastos</PageTitle>
+@inject IJSRuntime JS
+@using ControlGastos.Core.DTOs
+@using System.Text.Json
+@using System.Text
 
 <h3 class="mb-4"><i class="fa fa-receipt me-2"></i>Registros de Gastos</h3>
 
@@ -59,34 +60,27 @@
                 <h5 class="modal-title">@(editando ? "Editar Gasto" : "Nuevo Gasto")</h5>
                 <button type="button" class="btn-close" @onclick="() => modalVisible = false"></button>
             </div>
-            <EditForm Model="gastoEdit" OnValidSubmit="GuardarGastoAsync">
-                <DataAnnotationsValidator />
+            <form @onsubmit="GuardarGastoAsync">
                 <div class="modal-body">
-                    <ValidationSummary />
                     <div class="mb-3">
                         <label class="form-label">Fecha</label>
-                        <InputDate class="form-control" @bind-Value="gastoEdit.Fecha" />
-                        <ValidationMessage For="@(() => gastoEdit.Fecha)" />
+                        <input type="date" class="form-control" value="@gastoEdit.Fecha.ToString("yyyy-MM-dd")" @oninput="e => gastoEdit.Fecha = DateTime.TryParse(e.Value?.ToString(), out var d) ? d : gastoEdit.Fecha" />
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Fondo Monetario</label>
-                        <InputText class="form-control" @bind-Value="gastoEdit.FondoMonetarioNombre" />
-                        <ValidationMessage For="@(() => gastoEdit.FondoMonetarioNombre)" />
+                        <input class="form-control" value="@gastoEdit.FondoMonetarioNombre" @oninput="e => gastoEdit.FondoMonetarioNombre = e.Value?.ToString()" />
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Observaciones</label>
-                        <InputText class="form-control" @bind-Value="gastoEdit.Observaciones" />
-                        <ValidationMessage For="@(() => gastoEdit.Observaciones)" />
+                        <input class="form-control" value="@gastoEdit.Observaciones" @oninput="e => gastoEdit.Observaciones = e.Value?.ToString()" />
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Nombre de Comercio</label>
-                        <InputText class="form-control" @bind-Value="gastoEdit.NombreComercio" />
-                        <ValidationMessage For="@(() => gastoEdit.NombreComercio)" />
+                        <input class="form-control" value="@gastoEdit.NombreComercio" @oninput="e => gastoEdit.NombreComercio = e.Value?.ToString()" />
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Tipo de Documento</label>
-                        <InputText class="form-control" @bind-Value="gastoEdit.TipoDocumento" />
-                        <ValidationMessage For="@(() => gastoEdit.TipoDocumento)" />
+                        <input class="form-control" value="@gastoEdit.TipoDocumento" @oninput="e => gastoEdit.TipoDocumento = e.Value?.ToString()" />
                     </div>
                     <h5 class="mt-4 mb-2">Detalle de Gastos</h5>
                     <table class="table table-sm table-bordered align-middle">
@@ -119,7 +113,7 @@
                     <button type="submit" class="btn btn-primary"><i class="fa fa-save me-1"></i>Guardar</button>
                     <button type="button" class="btn btn-secondary" @onclick="() => modalVisible = false">Cancelar</button>
                 </div>
-            </EditForm>
+            </form>
         </div>
     </div>
 </div>
@@ -132,32 +126,28 @@
                 <h5 class="modal-title">Agregar Detalle</h5>
                 <button type="button" class="btn-close" @onclick="() => modalDetalleVisible = false"></button>
             </div>
-            <EditForm Model="detalleEdit" OnValidSubmit="ConfirmarDetalle">
-                <DataAnnotationsValidator />
+            <form @onsubmit="ConfirmarDetalle">
                 <div class="modal-body">
-                    <ValidationSummary />
                     <div class="mb-3">
                         <label class="form-label">Tipo de Gasto</label>
-                        <InputSelect class="form-select" @bind-Value="detalleEdit.TipoGastoId">
+                        <select class="form-select" @onchange="e => detalleEdit.TipoGastoId = int.TryParse(e.Value?.ToString(), out var id) ? id : 0">
                             <option value="0">-- Seleccione un tipo --</option>
                             @foreach (var tipoGasto in tiposDeGastoDisponibles)
                             {
-                                <option value="@tipoGasto.Id">@tipoGasto.Nombre (@tipoGasto.Codigo)</option>
+                                <option value="@tipoGasto.Id" selected="@(detalleEdit.TipoGastoId == tipoGasto.Id)">@tipoGasto.Nombre (@tipoGasto.Codigo)</option>
                             }
-                        </InputSelect>
-                        <ValidationMessage For="@(() => detalleEdit.TipoGastoId)" />
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Monto</label>
-                        <InputNumber class="form-control" @bind-Value="detalleEdit.Monto" step="0.01" />
-                        <ValidationMessage For="@(() => detalleEdit.Monto)" />
+                        <input type="number" class="form-control" step="0.01" value="@detalleEdit.Monto" @oninput="e => detalleEdit.Monto = decimal.TryParse(e.Value?.ToString(), out var m) ? m : detalleEdit.Monto" />
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Agregar</button>
                     <button type="button" class="btn btn-secondary" @onclick="() => modalDetalleVisible = false">Cancelar</button>
                 </div>
-            </EditForm>
+            </form>
         </div>
     </div>
 </div>
@@ -185,7 +175,8 @@
             var response = await Http.GetAsync("api/GastoEncabezado");
             if (response.IsSuccessStatusCode)
             {
-                gastos = await response.Content.ReadFromJsonAsync<List<GastoEncabezadoDto>>() ?? new List<GastoEncabezadoDto>();
+                var json = await response.Content.ReadAsStringAsync();
+                gastos = JsonSerializer.Deserialize<List<GastoEncabezadoDto>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<GastoEncabezadoDto>();
             }
             else
             {
@@ -209,7 +200,12 @@
 
     async Task CargarTiposDeGastoDisponiblesAsync()
     {
-        tiposDeGastoDisponibles = await Http.GetFromJsonAsync<List<TipoGastoDto>>("api/TipoGasto") ?? new();
+        var response = await Http.GetAsync("api/TipoGasto");
+        if (response.IsSuccessStatusCode)
+        {
+            var json = await response.Content.ReadAsStringAsync();
+            tiposDeGastoDisponibles = JsonSerializer.Deserialize<List<TipoGastoDto>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<TipoGastoDto>();
+        }
     }
 
     void AgregarDetalle()
@@ -226,7 +222,7 @@
         gastoEdit.Detalles.Add(new GastoDetalleDto
         {
             TipoGastoId = detalleEdit.TipoGastoId,
-            TipoGastoNombre = tipoGastoSeleccionado?.Nombre,
+            TipoGastoNombre = tipoGastoSeleccionado?.Nombre ?? string.Empty,
             Monto = detalleEdit.Monto
         });
         modalDetalleVisible = false;
@@ -243,15 +239,17 @@
         foreach (var detalle in gastoEdit.Detalles)
         {
             var tipoGasto = tiposDeGastoDisponibles.FirstOrDefault(t => t.Id == detalle.TipoGastoId);
-            detalle.TipoGastoNombre = tipoGasto?.Nombre;
+            detalle.TipoGastoNombre = tipoGasto?.Nombre ?? string.Empty;
         }
         try
         {
             HttpResponseMessage response;
+            var json = JsonSerializer.Serialize(gastoEdit);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
             if (editando)
-                response = await Http.PutAsJsonAsync($"api/GastoEncabezado/{gastoEdit.Id}", gastoEdit);
+                response = await Http.PutAsync($"api/GastoEncabezado/{gastoEdit.Id}", content);
             else
-                response = await Http.PostAsJsonAsync("api/GastoEncabezado", gastoEdit);
+                response = await Http.PostAsync("api/GastoEncabezado", content);
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
