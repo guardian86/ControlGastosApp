@@ -14,7 +14,7 @@ namespace ControlGastos.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    //[Authorize]
     public class UsuariosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

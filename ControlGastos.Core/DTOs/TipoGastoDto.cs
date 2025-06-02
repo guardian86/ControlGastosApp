@@ -11,7 +11,7 @@ namespace ControlGastos.Core.DTOs
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "El código es obligatorio.")]
+        // [Required(ErrorMessage = "El código es obligatorio.")]
         [StringLength(20, ErrorMessage = "El código no debe exceder los 20 caracteres.")]
         public string? Codigo { get; set; } 
 
