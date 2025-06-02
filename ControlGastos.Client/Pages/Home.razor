@@ -3,71 +3,70 @@
 
 <PageTitle>Control de Gastos</PageTitle>
 
-<Container>
-    <Row class="mt-4 text-center">
-        <Column>
-            <Heading Size="HeadingSize.Is2" Class="mb-2">Bienvenido a tu Control de Gastos</Heading>
-            <Paragraph Class="lead">Gestiona tus ingresos y egresos de manera eficiente y visualiza tu salud financiera.</Paragraph>
-            <Button Color="Color.Primary" Size="Size.Large" To="/movimientos" Class="me-2">
-                <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Search" Class="me-2" /> Ver Movimientos
-            </Button>
-            <Button Color="Color.Info" Size="Size.Large" To="/graficos">
-                <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.ChartBar" Class="me-2" /> Ver Gráficos
-            </Button>
-        </Column>
-    </Row>
-
-    <Row class="mt-5">
-        <Column Size="4">
-            <Card>
-                <CardHeader>
-                    <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Tools" Class="me-2" />
-                    <Heading Size="HeadingSize.Is4">Mantenimientos</Heading>
-                </CardHeader>
-                <CardBody>
-                    <Paragraph>Administra tipos de gasto y fondos monetarios.</Paragraph>
-                    <Button Color="Color.Secondary" To="/tipos-gasto" Class="me-2">
-                        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Tags" Class="me-2" /> Tipos de Gasto
-                    </Button>
-                    <Button Color="Color.Secondary" To="/fondos-monetarios">
-                        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Wallet" Class="me-2" /> Fondos Monetarios
-                    </Button>
-                </CardBody>
-            </Card>
-        </Column>
-        <Column Size="4">
-            <Card>
-                <CardHeader>
-                    <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Receipt" Class="me-2" />
-                    <Heading Size="HeadingSize.Is4">Movimientos</Heading>
-                </CardHeader>
-                <CardBody>
-                    <Paragraph>Registra gastos y depósitos.</Paragraph>
-                    <Button Color="Color.Success" To="/gastos" Class="me-2">
-                        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Receipt" Class="me-2" /> Gastos
-                    </Button>
-                    <Button Color="Color.Success" To="/depositos">
-                        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.PiggyBank" Class="me-2" /> Depósitos
-                    </Button>
-                </CardBody>
-            </Card>
-        </Column>
-        <Column Size="4">
-            <Card>
-                <CardHeader>
-                    <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.ChartPie" Class="me-2" />
-                    <Heading Size="HeadingSize.Is4">Reportes</Heading>
-                </CardHeader>
-                <CardBody>
-                    <Paragraph>Consulta movimientos y gráficos comparativos.</Paragraph>
-                    <Button Color="Color.Warning" To="/movimientos" Class="me-2">
-                        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Search" Class="me-2" /> Movimientos
-                    </Button>
-                    <Button Color="Color.Warning" To="/graficos">
-                        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.ChartBar" Class="me-2" /> Gráficos
-                    </Button>
-                </CardBody>
-            </Card>
-        </Column>
-    </Row>
-</Container>
+<div class="container mt-4">
+    <div class="row text-center">
+        <div class="col-12">
+            <h2 class="mb-2">Bienvenido a tu Control de Gastos</h2>
+            <p class="lead">Gestiona tus ingresos y egresos de manera eficiente y visualiza tu salud financiera.</p>
+            <a class="btn btn-primary btn-lg me-2" href="/movimientos">
+                <i class="fa fa-search me-2"></i> Ver Movimientos
+            </a>
+            <a class="btn btn-info btn-lg" href="/graficos">
+                <i class="fa fa-chart-bar me-2"></i> Ver Gráficos
+            </a>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fa fa-tools me-2"></i>
+                    <span class="h4">Mantenimientos</span>
+                </div>
+                <div class="card-body">
+                    <p>Administra tipos de gasto y fondos monetarios.</p>
+                    <a class="btn btn-secondary me-2" href="/tipos-gasto">
+                        <i class="fa fa-tags me-2"></i> Tipos de Gasto
+                    </a>
+                    <a class="btn btn-secondary" href="/fondos-monetarios">
+                        <i class="fa fa-wallet me-2"></i> Fondos Monetarios
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fa fa-receipt me-2"></i>
+                    <span class="h4">Movimientos</span>
+                </div>
+                <div class="card-body">
+                    <p>Registra gastos y depósitos.</p>
+                    <a class="btn btn-success me-2" href="/gastos">
+                        <i class="fa fa-receipt me-2"></i> Gastos
+                    </a>
+                    <a class="btn btn-success" href="/depositos">
+                        <i class="fa fa-piggy-bank me-2"></i> Depósitos
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fa fa-chart-pie me-2"></i>
+                    <span class="h4">Reportes</span>
+                </div>
+                <div class="card-body">
+                    <p>Consulta movimientos y gráficos comparativos.</p>
+                    <a class="btn btn-warning me-2" href="/movimientos">
+                        <i class="fa fa-search me-2"></i> Movimientos
+                    </a>
+                    <a class="btn btn-warning" href="/graficos">
+                        <i class="fa fa-chart-bar me-2"></i> Gráficos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

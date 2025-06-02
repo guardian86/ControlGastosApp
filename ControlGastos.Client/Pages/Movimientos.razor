@@ -1,74 +1,95 @@
 @page "/movimientos"
 @inject HttpClient Http
-@attribute [Authorize]
+@using System.ComponentModel.DataAnnotations
 
 <PageTitle>Consulta de Movimientos</PageTitle>
 
-<Heading Size="HeadingSize.Is3">Consulta de Movimientos</Heading>
+<h3 class="mb-4"><i class="fa fa-search me-2"></i>Consulta de Movimientos</h3>
 
-<Validations @ref="validator" Model="filtros">
-    <Row>
-        <Column ColumnSize="ColumnSize.IsAuto">
-            <Validator For="@(() => filtros.FechaInicio)">
-                <Field>
-                    <FieldLabel>Fecha Inicio</FieldLabel>
-                    <DateEdit @bind-Date="filtros.FechaInicio" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-        </Column>
-        <Column ColumnSize="ColumnSize.IsAuto">
-            <Validator For="@(() => filtros.FechaFin)">
-                <Field>
-                    <FieldLabel>Fecha Fin</FieldLabel>
-                    <DateEdit @bind-Date="filtros.FechaFin" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-        </Column>
-        <Column ColumnSize="ColumnSize.IsAuto" Style="align-self: flex-end; padding-bottom: 1rem;">
-            <Button Color="Color.Primary" Clicked="BuscarMovimientos">Buscar</Button>
-        </Column>
-    </Row>
-</Validations>
+<EditForm Model="filtros" OnValidSubmit="BuscarMovimientos">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="row g-3 align-items-end mb-3">
+        <div class="col-auto">
+            <label class="form-label">Fecha Inicio</label>
+            <InputDate class="form-control" @bind-Value="filtros.FechaInicio" />
+            <ValidationMessage For="@(() => filtros.FechaInicio)" />
+        </div>
+        <div class="col-auto">
+            <label class="form-label">Fecha Fin</label>
+            <InputDate class="form-control" @bind-Value="filtros.FechaFin" />
+            <ValidationMessage For="@(() => filtros.FechaFin)" />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa fa-search me-1"></i>Buscar
+            </button>
+        </div>
+    </div>
+</EditForm>
 
-<Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
 
-<DataGrid TItem="MovimientoDto" Data="@movimientos" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
-    <DataGridColumns>
-        <DataGridColumn TItem="MovimientoDto" Field="@nameof(MovimientoDto.Tipo)" Caption="Tipo" />
-        <DataGridColumn TItem="MovimientoDto" Field="@nameof(MovimientoDto.Fecha)" Caption="Fecha" />
-        <DataGridColumn TItem="MovimientoDto" Field="@nameof(MovimientoDto.FondoMonetarioNombre)" Caption="Fondo Monetario" />
-        <DataGridColumn TItem="MovimientoDto" Field="@nameof(MovimientoDto.Monto)" Caption="Monto" />
-        <DataGridColumn TItem="MovimientoDto" Field="@nameof(MovimientoDto.Descripcion)" Caption="Descripción" />
-    </DataGridColumns>
-</DataGrid>
-
-
+<table class="table table-striped table-bordered table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Tipo</th>
+            <th>Fecha</th>
+            <th>Fondo Monetario</th>
+            <th>Monto</th>
+            <th>Descripción</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (movimientos.Count == 0)
+        {
+            <tr><td colspan="5" class="text-center">No hay movimientos para mostrar.</td></tr>
+        }
+        else
+        {
+            @foreach (var m in movimientos)
+            {
+                <tr>
+                    <td>@m.Tipo</td>
+                    <td>@m.Fecha.ToShortDateString()</td>
+                    <td>@m.FondoMonetarioNombre</td>
+                    <td>@m.Monto.ToString("C")</td>
+                    <td>@m.Descripcion</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
 
 @code {
-    private DateTime fechaInicio = DateTime.Today.AddMonths(-1);
-    private DateTime fechaFin = DateTime.Today;
     private List<MovimientoDto> movimientos = new();
-    private Validations? validator;
     private string? errorMessage;
-    private FiltroMovimientosDto filtros = new();
+
+    private FiltrosModel filtros = new()
+    {
+        FechaInicio = DateTime.Today.AddMonths(-1),
+        FechaFin = DateTime.Today
+    };
+
+    public class FiltrosModel
+    {
+        [Required(ErrorMessage = "La fecha de inicio es obligatoria.")]
+        public DateTime FechaInicio { get; set; }
+
+        [Required(ErrorMessage = "La fecha de fin es obligatoria.")]
+        public DateTime FechaFin { get; set; }
+    }
 
     private async Task BuscarMovimientos()
     {
         errorMessage = null;
-        if (validator is null)
-        {
-            errorMessage = "El validador no está inicializado.";
-            return;
-        }
-        if (!await validator.ValidateAll())
-            return;
         try
         {
-            var url = $"api/Movimientos?fechaInicio={fechaInicio:yyyy-MM-dd}&fechaFin={fechaFin:yyyy-MM-dd}";
+            var url = $"api/Movimientos?fechaInicio={filtros.FechaInicio:yyyy-MM-dd}&fechaFin={filtros.FechaFin:yyyy-MM-dd}";
             movimientos = await Http.GetFromJsonAsync<List<MovimientoDto>>(url) ?? new List<MovimientoDto>();
-            StateHasChanged();
         }
         catch (HttpRequestException ex)
         {
@@ -83,4 +104,6 @@
             errorMessage = $"Error inesperado: {ex.Message}";
         }
     }
+
+  
 }

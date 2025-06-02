@@ -1,82 +1,100 @@
 @page "/tipos-gasto"
 @inject HttpClient Http
-@attribute [Authorize]
+@inject IJSRuntime JS
+@using ControlGastos.Core.DTOs
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.JSInterop
 
+<h3 class="mb-4"><i class="fa fa-tags me-2"></i>Tipos de Gasto</h3>
 
-<PageTitle>Tipos de Gasto</PageTitle>
-<Heading Size="HeadingSize.Is3">Tipos de Gasto</Heading>
+<button class="btn btn-warning mb-3" @onclick="NuevoTipoGasto">
+    <i class="fa fa-plus me-1"></i> Nuevo Tipo de Gasto
+</button>
 
-<Button Color="Color.Warning" Clicked="NuevoTipoGasto" Class="mb-3">Nuevo Tipo de Gasto</Button>
-
-<DataGrid TItem="TipoGastoDto" Data="tiposGasto" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
-    <DataGridColumns>
-        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Id)" Caption="ID" Sortable="true" />
-        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Codigo)" Caption="Código" Sortable="true" />
-        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Nombre)" Caption="Nombre" Sortable="true" />
-        <DataGridColumn TItem="TipoGastoDto" Field="@nameof(TipoGastoDto.Descripcion)" Caption="Descripción" Sortable="true" />
-        
-        <DataGridCommandColumn TItem="TipoGastoDto" Caption="Acciones" TextAlignment="TextAlignment.Center">
-            <DisplayTemplate>
-                <ComandosFila TItem="TipoGastoDto"
-                              Item="context"
-                              OnEdit="EditTipoGasto"
-                              OnDelete="DeleteTipoGasto" />
-            </DisplayTemplate>
-        </DataGridCommandColumn>
-
-    </DataGridColumns>
-    <EmptyTemplate>
-        <div class="text-center p-4">
-            No hay tipos de gasto para mostrar.
-        </div>
-    </EmptyTemplate>
-</DataGrid>
-
-<Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))" Class="mt-3">@errorMessage</Alert>
-
-<Modal @bind-Visible="modalVisible">
-    <ModalHeader>
-        <ModalTitle>@(editando ? "Editar Tipo de Gasto" : "Nuevo Tipo de Gasto")</ModalTitle>
-        <CloseButton Clicked="() => modalVisible = false" />
-    </ModalHeader>
-    <ModalBody>
-        <Validations @ref="validator" Model="tipoGastoEdit">
-            @if(editando && !string.IsNullOrEmpty(tipoGastoEdit.Codigo))
+<table class="table table-striped table-bordered table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th class="text-center">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (tiposGasto.Count == 0)
+        {
+            <tr><td colspan="5" class="text-center">No hay tipos de gasto para mostrar.</td></tr>
+        }
+        else
+        {
+            @foreach (var t in tiposGasto)
             {
-                <Field>
-                    <FieldLabel>Código</FieldLabel>
-                    <TextEdit Text="@tipoGastoEdit.Codigo" Plaintext /> 
-                </Field>
+                <tr>
+                    <td>@t.Id</td>
+                    <td>@t.Codigo</td>
+                    <td>@t.Nombre</td>
+                    <td>@t.Descripcion</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-primary me-1" @onclick="() => EditTipoGasto(t)"><i class="fa fa-edit"></i></button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteTipoGasto(t)"><i class="fa fa-trash"></i></button>
+                    </td>
+                </tr>
             }
-            <Validator For="@(() => tipoGastoEdit.Nombre)">
-                <Field>
-                    <FieldLabel>Nombre</FieldLabel>
-                    <TextEdit @bind-Text="tipoGastoEdit.Nombre" Placeholder="Nombre del tipo de gasto" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-            <Validator For="@(() => tipoGastoEdit.Descripcion)">
-                <Field>
-                    <FieldLabel>Descripción</FieldLabel>
-                    <TextEdit @bind-Text="tipoGastoEdit.Descripcion" Placeholder="Descripción (opcional)" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-        </Validations>
-        </ModalBody>
-    <ModalFooter>
-        <Button Color="Color.Secondary" Clicked="() => modalVisible = false">Cancelar</Button>
-        <Button Color="Color.Primary" Clicked="GuardarTipoGastoAsync">Guardar</Button>
-    </ModalFooter>
-</Modal>
+        }
+    </tbody>
+</table>
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
+
+<!-- Modal Bootstrap -->
+<div class="modal fade @(modalVisible ? "show d-block" : "")" tabindex="-1" style="background:rgba(0,0,0,0.3);" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@(editando ? "Editar Tipo de Gasto" : "Nuevo Tipo de Gasto")</h5>
+                <button type="button" class="btn-close" @onclick="() => modalVisible = false"></button>
+            </div>
+            <form onsubmit="return false;" @onsubmit="GuardarTipoGastoAsync">
+                <div class="modal-body">
+                    @if (editando && !string.IsNullOrEmpty(tipoGastoEdit.Codigo))
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Código</label>
+                            <input class="form-control" value="@tipoGastoEdit.Codigo" readonly />
+                        </div>
+                    }
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input class="form-control" value="@tipoGastoEdit.Nombre" @oninput="e => tipoGastoEdit.Nombre = e.Value?.ToString()" />
+                        @if (!string.IsNullOrWhiteSpace(errorMessage) && errorMessage.Contains("nombre"))
+                        {
+                            <div class="text-danger small">@errorMessage</div>
+                        }
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <input class="form-control" value="@tipoGastoEdit.Descripcion" @oninput="e => tipoGastoEdit.Descripcion = e.Value?.ToString()" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-save me-1"></i>Guardar</button>
+                    <button type="button" class="btn btn-secondary" @onclick="() => modalVisible = false">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 @code {
     List<TipoGastoDto> tiposGasto = new();
     TipoGastoDto tipoGastoEdit = new();
     bool modalVisible = false;
     bool editando = false;
-    Validations? validator;
     string? errorMessage;
 
     protected override async Task OnInitializedAsync()
@@ -92,7 +110,8 @@
             var response = await Http.GetAsync("api/TipoGasto");
             if (response.IsSuccessStatusCode)
             {
-                tiposGasto = await response.Content.ReadFromJsonAsync<List<TipoGastoDto>>() ?? new List<TipoGastoDto>();
+                var json = await response.Content.ReadAsStringAsync();
+                tiposGasto = System.Text.Json.JsonSerializer.Deserialize<List<TipoGastoDto>>(json, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<TipoGastoDto>();
             }
             else
             {
@@ -107,33 +126,37 @@
 
     void NuevoTipoGasto()
     {
-        tipoGastoEdit = new TipoGastoDto(); // Crea un nuevo objeto para el formulario
+        tipoGastoEdit = new TipoGastoDto();
         editando = false;
-        errorMessage = null; // Limpia errores anteriores
-        if (validator != null) { validator.ClearAll(); } // Limpia validaciones anteriores del modal
-        modalVisible = true; // Muestra el modal
+        errorMessage = null;
+        modalVisible = true;
     }
 
     async Task GuardarTipoGastoAsync()
     {
         errorMessage = null;
-        if (validator is null || !await validator.ValidateAll()) 
+        if (string.IsNullOrWhiteSpace(tipoGastoEdit.Nombre))
         {
+            errorMessage = "El nombre es obligatorio.";
             return;
         }
-        
+        if (!editando && string.IsNullOrWhiteSpace(tipoGastoEdit.Codigo))
+        {
+            tipoGastoEdit.Codigo = null;
+        }
         try
         {
             HttpResponseMessage response;
+            var json = System.Text.Json.JsonSerializer.Serialize(tipoGastoEdit);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
             if (editando)
             {
-                response = await Http.PutAsJsonAsync($"api/TipoGasto/{tipoGastoEdit.Id}", tipoGastoEdit);
+                response = await Http.PutAsync($"api/TipoGasto/{tipoGastoEdit.Id}", content);
             }
             else
             {
-                response = await Http.PostAsJsonAsync("api/TipoGasto", tipoGastoEdit);
+                response = await Http.PostAsync("api/TipoGasto", content);
             }
-
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
@@ -161,17 +184,13 @@
         };
         editando = true;
         errorMessage = null;
-        if (validator != null) { validator.ClearAll(); }
         modalVisible = true;
     }
 
     async Task DeleteTipoGasto(TipoGastoDto tipo)
     {
         errorMessage = null;
-
-        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"¿Eliminar '{tipo.Nombre}'?");
-        if (!confirmed) return;
-
+        if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar '{tipo.Nombre}'?")) return;
         try
         {
             var response = await Http.DeleteAsync($"api/TipoGasto/{tipo.Id}");
@@ -188,5 +207,4 @@
         }
         StateHasChanged();
     }
-
 }

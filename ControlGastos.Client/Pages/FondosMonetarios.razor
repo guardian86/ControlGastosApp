@@ -1,84 +1,100 @@
 @page "/fondos-monetarios"
 @inject HttpClient Http
-@attribute [Authorize]
-
-@using Blazorise
-@using Blazorise.DataGrid
-@using Blazorise.Validation
+@using System.ComponentModel.DataAnnotations
 
 <PageTitle>Fondos Monetarios</PageTitle>
 
-<Heading Size="HeadingSize.Is3">Fondos Monetarios</Heading>
+<h3 class="mb-4"><i class="fa fa-wallet me-2"></i>Fondos Monetarios</h3>
 
-<DataGrid TItem="FondoMonetarioDto" Data="fondos" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
-    <DataGridColumns>
-        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Id)" Caption="ID" />
-        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Nombre)" Caption="Nombre" />
-        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Tipo)" Caption="Tipo" />
-        <DataGridColumn TItem="FondoMonetarioDto" Field="@nameof(FondoMonetarioDto.Descripcion)" Caption="Descripción" />
-        <DataGridCommandColumn TItem="FondoMonetarioDto" Caption="Acciones" TextAlignment="TextAlignment.Center">
-            <DisplayTemplate>
-                <ComandosFila TItem="FondoMonetarioDto"
-                              Item="context"
-                              OnEdit="EditFondo"
-                              OnDelete="DeleteFondo" />
-            </DisplayTemplate>
-        </DataGridCommandColumn>
-    </DataGridColumns>
-    <EmptyTemplate>
-        <div class="text-center p-4">No hay fondos monetarios para mostrar.</div>
-    </EmptyTemplate>
-</DataGrid>
+<button class="btn btn-success mb-3" @onclick="NuevoFondo">
+    <i class="fa fa-plus me-1"></i> Nuevo Fondo Monetario
+</button>
 
-<Modal @bind-Visible="modalVisible">
-    <ModalHeader>@(editando ? "Editar Fondo Monetario" : "Nuevo Fondo Monetario")</ModalHeader>
-    <ModalBody>
-        <Validations @ref="validator" Model="fondoEdit">
-            <Validator For="@(() => fondoEdit.Nombre)">
-                <Field>
-                    <FieldLabel>Nombre</FieldLabel>
-                    <TextEdit @bind-Text="fondoEdit.Nombre" Placeholder="Nombre" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-            <Validations @ref="validator" Model="fondoEdit">
-                <Validator For="@(() => fondoEdit.Tipo)">
-                    <Field>
-                        <FieldLabel>Tipo</FieldLabel>
-                        <Select TValue="string" @bind-Value="fondoEdit.Tipo">
-                            <SelectItem TValue="string" Value="@(null)">-- Seleccione un tipo --</SelectItem>
-                            <SelectItem Value="1">Cuenta Bancaria</SelectItem>
-                            <SelectItem Value="2">Caja Menuda</SelectItem>
-                        </Select>
-                        <ValidationMessage />
-                    </Field>
-                </Validator>
-            </Validations>
-            <p>Valor actual de fondoEdit.Tipo: @fondoEdit.Tipo</p> <Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
-            <Validator For="@(() => fondoEdit.Descripcion)">
-                <Field>
-                    <FieldLabel>Descripción</FieldLabel>
-                    <TextEdit @bind-Text="fondoEdit.Descripcion" Placeholder="Descripción" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-        </Validations>
-        <Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
-    </ModalBody>
-    <ModalFooter>
-        <Button Color="Color.Primary" Clicked="GuardarFondoAsync">Guardar</Button>
-        <Button Color="Color.Secondary" Clicked="() => modalVisible = false">Cancelar</Button>
-    </ModalFooter>
-</Modal>
+<table class="table table-striped table-bordered table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Descripción</th>
+            <th class="text-center">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (fondos.Count == 0)
+        {
+            <tr><td colspan="5" class="text-center">No hay fondos monetarios para mostrar.</td></tr>
+        }
+        else
+        {
+            @foreach (var f in fondos)
+            {
+                <tr>
+                    <td>@f.Id</td>
+                    <td>@f.Nombre</td>
+                    <td>@(f.Tipo == "1" ? "Cuenta Bancaria" : f.Tipo == "2" ? "Caja Menuda" : "-")</td>
+                    <td>@f.Descripcion</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-primary me-1" @onclick="() => EditFondo(f)"><i class="fa fa-edit"></i></button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteFondo(f)"><i class="fa fa-trash"></i></button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
 
-<Button Color="Color.Success" Clicked="NuevoFondo">Nuevo Fondo Monetario</Button>
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
+
+<!-- Modal Bootstrap -->
+<div class="modal fade @(modalVisible ? "show d-block" : "")" tabindex="-1" style="background:rgba(0,0,0,0.3);" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@(editando ? "Editar Fondo Monetario" : "Nuevo Fondo Monetario")</h5>
+                <button type="button" class="btn-close" @onclick="() => modalVisible = false"></button>
+            </div>
+            <EditForm Model="fondoEdit" OnValidSubmit="GuardarFondoAsync">
+                <DataAnnotationsValidator />
+                <div class="modal-body">
+                    <ValidationSummary />
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <InputText class="form-control" @bind-Value="fondoEdit.Nombre" />
+                        <ValidationMessage For="@(() => fondoEdit.Nombre)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo</label>
+                        <InputSelect class="form-select" @bind-Value="fondoEdit.Tipo">
+                            <option value="">-- Seleccione un tipo --</option>
+                            <option value="1">Cuenta Bancaria</option>
+                            <option value="2">Caja Menuda</option>
+                        </InputSelect>
+                        <ValidationMessage For="@(() => fondoEdit.Tipo)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <InputText class="form-control" @bind-Value="fondoEdit.Descripcion" />
+                        <ValidationMessage For="@(() => fondoEdit.Descripcion)" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-save me-1"></i>Guardar</button>
+                    <button type="button" class="btn btn-secondary" @onclick="() => modalVisible = false">Cancelar</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
 
 @code {
     List<FondoMonetarioDto> fondos = new();
     FondoMonetarioDto fondoEdit = new();
     bool modalVisible = false;
     bool editando = false;
-    Validations? validator;
     string? errorMessage;
 
     protected override async Task OnInitializedAsync()
@@ -96,42 +112,37 @@
         fondoEdit = new FondoMonetarioDto { Tipo = "1" };
         editando = false;
         modalVisible = true;
-        if (validator != null) validator.ClearAll();
     }
 
     private async Task GuardarFondoAsync()
     {
         errorMessage = null;
-        if (!(await (validator?.ValidateAll() ?? Task.FromResult(false)))) return; // Validación más concisa
+        if (string.IsNullOrWhiteSpace(fondoEdit.Nombre) || string.IsNullOrWhiteSpace(fondoEdit.Tipo))
+        {
+            errorMessage = "El nombre y el tipo son obligatorios.";
+            return;
+        }
         try
         {
-            // Determina el método HTTP según el estado de edición
             var endpoint = editando ? $"api/FondoMonetario/{fondoEdit.Id}" : "api/FondoMonetario";
             var response = editando
                 ? await Http.PutAsJsonAsync(endpoint, fondoEdit)
                 : await Http.PostAsJsonAsync(endpoint, fondoEdit);
 
-            await ProcesarRespuestaAsync(response);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Error al guardar: {error}";
+                return;
+            }
+
+            modalVisible = false;
+            await CargarFondosAsync();
         }
         catch (Exception ex)
         {
             errorMessage = $"Error inesperado: {ex.Message}";
-            Console.WriteLine(errorMessage); // Para depuración
         }
-    }
-
-    private async Task ProcesarRespuestaAsync(HttpResponseMessage response)
-    {
-        if (!response.IsSuccessStatusCode)
-        {
-            var error = await response.Content.ReadAsStringAsync();
-            errorMessage = $"Error al guardar: {error}";
-            Console.WriteLine(errorMessage); // Para depuración
-            return;
-        }
-
-        modalVisible = false;
-        await CargarFondosAsync();
     }
 
     void EditFondo(FondoMonetarioDto fondo)

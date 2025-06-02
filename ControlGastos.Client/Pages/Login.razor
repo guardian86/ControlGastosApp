@@ -1,48 +1,59 @@
-@page "/"
+@page "/login"
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject AuthService AuthService
 @inject IJSRuntime JS
 
 <PageTitle>Iniciar Sesión</PageTitle>
-<Heading Size="HeadingSize.Is3">Iniciar Sesión</Heading>
 
-<Validations @ref="validator" Model="loginModel">
-    <Field>
-        <FieldLabel>Usuario</FieldLabel>
-        <TextEdit @bind-Text="loginModel.UserName" placeholder="Ingrese su usuario" />
-        <ValidationMessage TValue="string" For="@(() => loginModel.UserName)" />
-    </Field>
-    <Field>
-        <FieldLabel>Contraseña</FieldLabel>
-        <TextEdit @bind-Text="loginModel.Password" Type="password" AllowPasswordVisible="true" Placeholder="Ingrese su contraseña" />
-        <ValidationMessage TValue="string" For="@(() => loginModel.Password)" />
-    </Field>
-    <Button Color="Color.Primary" Clicked="LoginAsync">Ingresar</Button>
-</Validations>
-
-<Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
+<div class="container mt-5" style="max-width:400px;">
+    <div class="card shadow">
+        <div class="card-body">
+            <h3 class="mb-4 text-center"><i class="fa fa-user-circle me-2"></i>Iniciar Sesión</h3>
+            <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="mb-3">
+                    <label class="form-label">Usuario</label>
+                    <InputText class="form-control" @bind-value="loginModel.UserName" />
+                    <ValidationMessage For="@(() => loginModel.UserName)" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Contraseña</label>
+                    <InputText class="form-control" @bind-value="loginModel.Password" type="password" />
+                    <ValidationMessage For="@(() => loginModel.Password)" />
+                </div>
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger">@errorMessage</div>
+                }
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fa fa-sign-in-alt me-1"></i>Ingresar
+                </button>
+            </EditForm>
+        </div>
+    </div>
+</div>
 
 @code {
     private LoginModel loginModel = new();
-    private Validations? validator;
-    private string errorMessage = string.Empty;
-    private string passwordType = "password";
+    private string? errorMessage;
 
-    private void TogglePasswordVisibility()
+    public class LoginModel
     {
-        passwordType = passwordType == "password" ? "text" : "password";
+        [Required(ErrorMessage = "El usuario es obligatorio.")]
+        public string? UserName { get; set; }
+
+        [Required(ErrorMessage = "La contraseña es obligatoria.")]
+        public string? Password { get; set; }
     }
 
-    private async Task LoginAsync()
+    private async Task HandleLogin()
     {
-        errorMessage = string.Empty;
-        if (validator is null) return;
-        if (!await validator.ValidateAll()) return;
-
+        errorMessage = null;
         try
         {
-            var response = await Http.PostAsJsonAsync("api/Usuarios/login", loginModel);
+            var response = await Http.PostAsJsonAsync("api/Auth/login", loginModel);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<LoginResult>();
@@ -69,5 +80,8 @@
         }
     }
 
-  
+    public class LoginResult
+    {
+        public string? Token { get; set; }
+    }
 }

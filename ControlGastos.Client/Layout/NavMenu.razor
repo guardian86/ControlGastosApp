@@ -1,67 +1,87 @@
-﻿@using Blazorise.Icons.FontAwesome
-
-<Bar Background="Background.Primary" ThemeContrast="ThemeContrast.Dark">
-    <BarBrand>
-        <BarItem>
-            <BarLink To="/">
-                <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Home" Class="me-2" /> Control de Gastos
-            </BarLink>
-        </BarItem>
-    </BarBrand>
-    <BarToggler BarTogglerMode="BarTogglerMode.Left" />
-    <BarMenu>
-        <BarStart>
-            <BarItem>
-                <BarLink To="/home">
-                <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Home" Class="me-2" /> Inicio
-            </BarLink></BarItem>
-            <BarDropdown Text="Mantenimientos">
-                <BarDropdownItem To="/tipos-gasto">
-                    <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Tags" Class="me-2" /> Tipos de Gasto
-                </BarDropdownItem>
-                <BarDropdownItem To="/fondos-monetarios">
-                    <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Wallet" Class="me-2" /> Fondos Monetarios
-                </BarDropdownItem>
-            </BarDropdown>
-            <BarDropdown Text="Movimientos">
-                <BarDropdownItem To="/presupuestos">
-                    <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Coins" Class="me-2" /> Presupuesto por tipo de gasto
-                </BarDropdownItem>
-                <BarDropdownItem To="/gastos">
-                    <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Receipt" Class="me-2" /> Registros de gastos
-                </BarDropdownItem>
-                <BarDropdownItem To="/depositos">
-                    <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.PiggyBank" Class="me-2" /> Depósitos
-                </BarDropdownItem>
-            </BarDropdown>
-            <BarDropdown Text="Consultas y Reportes">
-                <BarDropdownItem To="/movimientos">
-                    <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Search" Class="me-2" /> Consulta de movimientos
-                </BarDropdownItem>
-                <BarDropdownItem To="/graficos">
-                    <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.ChartPie" Class="me-2" /> Gráfico Comparativo
-                </BarDropdownItem>
-            </BarDropdown>
-        </BarStart>
-        <BarEnd>
-            <BarItem>
-                <BarLink To="/">
-                    <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.User" Class="me-2" /> Iniciar Sesión
-                </BarLink>
-            </BarItem>
-            <BarItem>
-                <Button Color="Color.Danger" Clicked="Logout">Cerrar Sesión</Button>
-            </BarItem>
-        </BarEnd>
-    </BarMenu>
-</Bar>
+﻿@using ControlGastos.Client
+@* Menú lateral izquierdo tipo Blazor clásico, solo Bootstrap y FontAwesome *@
+<aside class="sidebar bg-light border-end vh-100 position-fixed d-flex flex-column" style="width: 220px; top: 0; left: 0; z-index: 1000;">
+    <div class="sidebar-sticky pt-4 flex-grow-1">
+        <ul class="nav flex-column">
+            <li class="nav-item mb-2">
+                <a class="nav-link d-flex align-items-center" href="/home">
+                    <i class="fa fa-home me-2"></i> Inicio
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link d-flex align-items-center" href="/movimientos">
+                    <i class="fa fa-search me-2"></i> Movimientos
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link d-flex align-items-center" href="/graficos">
+                    <i class="fa fa-chart-bar me-2"></i> Gráficos
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link d-flex align-items-center" href="/gastos">
+                    <i class="fa fa-receipt me-2"></i> Gastos
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link d-flex align-items-center" href="/depositos">
+                    <i class="fa fa-piggy-bank me-2"></i> Depósitos
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link d-flex align-items-center" href="/tipos-gasto">
+                    <i class="fa fa-tags me-2"></i> Tipos de Gasto
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link d-flex align-items-center" href="/fondos-monetarios">
+                    <i class="fa fa-wallet me-2"></i> Fondos Monetarios
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link d-flex align-items-center" href="/presupuestos">
+                    <i class="fa fa-coins me-2"></i> Presupuestos
+                </a>
+            </li>
+        </ul>
+    </div>
+    <div class="pb-4">
+        @if (isAuthenticated)
+        {
+            <div class="mb-2 ps-3 text-secondary small">
+                <i class="fa fa-user me-1"></i> @userName
+            </div>
+            <button class="nav-link d-flex align-items-center text-danger btn btn-link p-0" @onclick="LogoutAsync">
+                <i class="fa fa-sign-out-alt me-2"></i> Cerrar Sesión
+            </button>
+        }
+        else
+        {
+            <a class="nav-link d-flex align-items-center text-success" href="/login">
+                <i class="fa fa-sign-in-alt me-2"></i> Iniciar Sesión
+            </a>
+        }
+    </div>
+</aside>
 
 @code {
     [Inject] NavigationManager NavigationManager { get; set; } = default!;
-    
-    void Logout()
+    [Inject] AuthService AuthService { get; set; } = default!;
+
+    private bool isAuthenticated;
+    private string? userName;
+
+    protected override async Task OnInitializedAsync()
     {
-        // Aquí puedes limpiar localStorage/sessionStorage si implementas JWT
+        isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        userName = isAuthenticated ? await AuthService.GetUserNameAsync() : null;
+    }
+
+    private async Task LogoutAsync()
+    {
+        await AuthService.LogoutAsync();
+        isAuthenticated = false;
+        userName = null;
         NavigationManager.NavigateTo("/login", true);
     }
 }

@@ -1,115 +1,118 @@
 @page "/graficos"
 @inject HttpClient Http
-@attribute [Authorize]
-
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components
+@using System.Net.Http.Json
+@using ControlGastos.Core.DTOs
+@inject IJSRuntime JS
 
 <PageTitle>Gráfico Comparativo de Presupuesto y Ejecución</PageTitle>
-<Heading Size="HeadingSize.Is3">Gráfico Comparativo de Presupuesto y Ejecución</Heading>
 
-<Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
+<h3 class="mb-4"><i class="fa fa-chart-bar me-2"></i>Gráfico Comparativo de Presupuesto y Ejecución</h3>
 
-<Validations @ref="validator" Model="filtroGrafico">
-    <Row>
-        <Column ColumnSize="ColumnSize.IsAuto">
-            <Field>
-                <FieldLabel>Fecha Inicio</FieldLabel>
-                <DateEdit @bind-Date="filtroGrafico.FechaInicio" />
-                <ValidationMessage TValue="DateTime?" For="@(() => filtroGrafico.FechaInicio)" />
-            </Field>
-        </Column>
-        <Column ColumnSize="ColumnSize.IsAuto">
-            <Field>
-                <FieldLabel>Fecha Fin</FieldLabel>
-                <DateEdit @bind-Date="filtroGrafico.FechaFin" />
-                <ValidationMessage TValue="DateTime?" For="@(() => filtroGrafico.FechaFin)" />
-            </Field>
-        </Column>
-        <Column ColumnSize="ColumnSize.IsAuto" Style="align-self: flex-end; padding-bottom: 1rem;">
-            <Button Color="Color.Primary" Clicked="BuscarGrafico">Buscar</Button>
-        </Column>
-    </Row>
-</Validations>
+<EditForm Model="filtroGrafico" OnValidSubmit="BuscarGrafico">
+    <DataAnnotationsValidator />
+    <div class="row g-3 align-items-end mb-3">
+        <div class="col-auto">
+            <label class="form-label">Fecha Inicio</label>
+            <InputDate class="form-control" @bind-value="filtroGrafico.FechaInicio" />
+            <ValidationMessage For="@(() => filtroGrafico.FechaInicio)" />
+        </div>
+        <div class="col-auto">
+            <label class="form-label">Fecha Fin</label>
+            <InputDate class="form-control" @bind-value="filtroGrafico.FechaFin" />
+            <ValidationMessage For="@(() => filtroGrafico.FechaFin)" />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary"><i class="fa fa-search me-1"></i>Buscar</button>
+        </div>
+    </div>
+</EditForm>
 
-<BarChart TItem="decimal" @ref="barChart" Options="chartOptions" Data="chartData" />
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
 
+<div class="card mt-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-7">
+                <canvas id="chartPresupuesto" height="120"></canvas>
+            </div>
+            <div class="col-md-5">
+                <canvas id="chartPresupuestoPie" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
-    // modelo para los filtros
-    private FiltroGraficoDto filtroGrafico = new FiltroGraficoDto();
-    // Para los datos del gráfico
+    private FiltroGraficoDto filtroGrafico = new FiltroGraficoDto { FechaInicio = DateTime.Today.AddMonths(-1), FechaFin = DateTime.Today };
     private List<GraficoDto> datosParaElGrafico = new();
-
-    private BarChart<decimal>? barChart;
-    private BarChartOptions chartOptions = new() { Responsive = true };
-    private ChartData<decimal> chartData = new();
-    private Validations? validator;
     private string? errorMessage;
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && datosParaElGrafico.Count > 0)
+        {
+            await RenderizarGraficoAsync();
+        }
+    }
 
-    async Task BuscarGrafico()
+    private async Task BuscarGrafico()
     {
         errorMessage = null;
-        if (validator is null || !await validator.ValidateAll())
+        if (filtroGrafico.FechaInicio == null || filtroGrafico.FechaFin == null)
         {
+            errorMessage = "Debe ingresar ambas fechas.";
             return;
         }
-
         try
         {
-            if (filtroGrafico.FechaInicio.HasValue && filtroGrafico.FechaFin.HasValue)
-            {
-                var url = $"api/Graficos?fechaInicio={filtroGrafico.FechaInicio.Value:yyyy-MM-dd}&fechaFin={filtroGrafico.FechaFin.Value:yyyy-MM-dd}";
-                datosParaElGrafico = await Http.GetFromJsonAsync<List<GraficoDto>>(url) ?? new List<GraficoDto>();
-
-                if (chartData == null)
-                    chartData = new ChartData<decimal>();
-
-                if (chartData.Labels == null)
-                    chartData.Labels = new List<object>();
-
-                if (chartData.Datasets == null)
-                    chartData.Datasets = new List<Blazorise.Charts.ChartDataset<decimal>>();
-
-
-                // Lógica para actualizar chartData con datosParaElGrafico
-                chartData.Labels = datosParaElGrafico.Select(x => (object?)x.TipoGastoNombre ?? string.Empty).ToList();
-                chartData.Datasets.Clear();
-                chartData.Datasets.Add(new BarChartDataset<decimal>
-                {
-                    Label = "Presupuestado",
-                    Data = datosParaElGrafico.Select(x => x.Presupuestado).ToList(),
-                    BackgroundColor = "#4e73df"
-                });
-                chartData.Datasets.Add(new BarChartDataset<decimal>
-                {
-                    Label = "Ejecutado",
-                    Data = datosParaElGrafico.Select(x => x.Ejecutado).ToList(),
-                    BackgroundColor = "#1cc88a"
-                });
-
-                if (barChart != null)
-                {
-                    await barChart.Update();
-                }
-            }
-            else
-            {
-                errorMessage = "Por favor, seleccione fechas válidas.";
-            }
+            var url = $"api/Graficos?fechaInicio={filtroGrafico.FechaInicio:yyyy-MM-dd}&fechaFin={filtroGrafico.FechaFin:yyyy-MM-dd}";
+            datosParaElGrafico = await Http.GetFromJsonAsync<List<GraficoDto>>(url) ?? new List<GraficoDto>();
+            await RenderizarGraficoAsync();
         }
         catch (Exception ex)
         {
             errorMessage = $"Error al buscar datos para el gráfico: {ex.Message}";
             datosParaElGrafico = new List<GraficoDto>();
-            chartData.Labels.Clear();
-            chartData.Datasets.Clear();
-            if (barChart != null)
-            {
-                await barChart.Update();
-            }
         }
+    }
 
-        StateHasChanged();
+    private async Task RenderizarGraficoAsync()
+    {
+        if (datosParaElGrafico == null || datosParaElGrafico.Count == 0)
+        {
+            await JS.InvokeVoidAsync("renderPresupuestoChart", "chartPresupuesto", new
+            {
+                labels = new string[0],
+                presupuesto = new decimal[0],
+                ejecucion = new decimal[0]
+            });
+            await JS.InvokeVoidAsync("renderPresupuestoPieChart", "chartPresupuestoPie", new
+            {
+                labels = new string[0],
+                ejecucion = new decimal[0]
+            });
+            return;
+        }
+        var labels = datosParaElGrafico.Select(x => x.TipoGastoNombre ?? "").ToArray();
+        var presupuesto = datosParaElGrafico.Select(x => (decimal)x.Presupuestado).ToArray();
+        var ejecucion = datosParaElGrafico.Select(x => (decimal)x.Ejecutado).ToArray();
+        await JS.InvokeVoidAsync("renderPresupuestoChart", "chartPresupuesto", new
+        {
+            labels,
+            presupuesto,
+            ejecucion
+        });
+        await JS.InvokeVoidAsync("renderPresupuestoPieChart", "chartPresupuestoPie", new
+        {
+            labels,
+            ejecucion
+        });
     }
 }
 

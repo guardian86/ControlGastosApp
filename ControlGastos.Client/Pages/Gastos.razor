@@ -1,142 +1,174 @@
 @page "/gastos"
 @inject HttpClient Http
-@attribute [Authorize]
+@using System.ComponentModel.DataAnnotations
 
 <PageTitle>Registros de Gastos</PageTitle>
 
-<Heading Size="HeadingSize.Is3">Registros de Gastos</Heading>
+<h3 class="mb-4"><i class="fa fa-receipt me-2"></i>Registros de Gastos</h3>
 
-<DataGrid TItem="GastoEncabezadoDto" Data="gastos" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
-    <DataGridColumns>
-        <DataGridColumn TItem="GastoEncabezadoDto" Field="@nameof(GastoEncabezadoDto.Id)" Caption="ID" />
-        <DataGridColumn TItem="GastoEncabezadoDto" Field="@nameof(GastoEncabezadoDto.Fecha)" Caption="Fecha" />
-        <DataGridColumn TItem="GastoEncabezadoDto" Field="@nameof(GastoEncabezadoDto.FondoMonetarioNombre)" Caption="Fondo Monetario" />
-        <DataGridColumn TItem="GastoEncabezadoDto" Field="@nameof(GastoEncabezadoDto.NombreComercio)" Caption="Comercio" />
-        <DataGridColumn TItem="GastoEncabezadoDto" Field="@nameof(GastoEncabezadoDto.TipoDocumento)" Caption="Tipo Documento" />
-        <DataGridCommandColumn TItem="GastoEncabezadoDto" Caption="Acciones" TextAlignment="TextAlignment.Center">
-            <DisplayTemplate>
-                <ComandosFila TItem="GastoEncabezadoDto"
-                              Item="context"
-                              OnEdit="EditGasto"
-                              OnDelete="DeleteGasto" />
-            </DisplayTemplate>
-        </DataGridCommandColumn>
-    </DataGridColumns>
-    <EmptyTemplate>
-        <div class="text-center p-4">No hay gastos para mostrar.</div>
-    </EmptyTemplate>
-</DataGrid>
+<button class="btn btn-success mb-3" @onclick="NuevoGasto">
+    <i class="fa fa-plus me-1"></i> Nuevo Gasto
+</button>
 
-<Button Color="Color.Success" Clicked="NuevoGasto">Nuevo Gasto</Button>
+<table class="table table-striped table-bordered table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Fondo Monetario</th>
+            <th>Comercio</th>
+            <th>Tipo Documento</th>
+            <th class="text-center">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (gastos.Count == 0)
+        {
+            <tr><td colspan="6" class="text-center">No hay gastos para mostrar.</td></tr>
+        }
+        else
+        {
+            @foreach (var g in gastos)
+            {
+                <tr>
+                    <td>@g.Id</td>
+                    <td>@g.Fecha.ToShortDateString()</td>
+                    <td>@g.FondoMonetarioNombre</td>
+                    <td>@g.NombreComercio</td>
+                    <td>@g.TipoDocumento</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-primary me-1" @onclick="() => EditGasto(g)"><i class="fa fa-edit"></i></button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteGasto(g)"><i class="fa fa-trash"></i></button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
 
-<Modal @bind-Visible="modalVisible">
-    <ModalHeader>@(editando ? "Editar Gasto" : "Nuevo Gasto")</ModalHeader>
-    <ModalBody>
-        <Validations @ref="validator" Model="gastoEdit">
-            <Validator For="@(() => gastoEdit.Fecha)">
-                <Field>
-                    <FieldLabel>Fecha</FieldLabel>
-                    <DateEdit @bind-Date="gastoEdit.Fecha" Placeholder="Fecha" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-            <Validator For="@(() => gastoEdit.FondoMonetarioNombre)">
-                <Field>
-                    <FieldLabel>Fondo Monetario</FieldLabel>
-                    <TextEdit @bind-Text="gastoEdit.FondoMonetarioNombre" Placeholder="Fondo Monetario" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-            <Validator For="@(() => gastoEdit.Observaciones)">
-                <Field>
-                    <FieldLabel>Observaciones</FieldLabel>
-                    <TextEdit @bind-Text="gastoEdit.Observaciones" Placeholder="Observaciones" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-            <Validator For="@(() => gastoEdit.NombreComercio)">
-                <Field>
-                    <FieldLabel>Nombre de Comercio</FieldLabel>
-                    <TextEdit @bind-Text="gastoEdit.NombreComercio" Placeholder="Nombre de Comercio" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-            <Validator For="@(() => gastoEdit.TipoDocumento)">
-                <Field>
-                    <FieldLabel>Tipo de Documento</FieldLabel>
-                    <TextEdit @bind-Text="gastoEdit.TipoDocumento" Placeholder="Tipo de Documento" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-            <Heading Size="HeadingSize.Is5">Detalle de Gastos</Heading>
-            <DataGrid TItem="GastoDetalleDto" Data="gastoEdit.Detalles" AutoGenerateColumns="false" Responsive="true" Striped="true" Bordered="true">
-                <DataGridColumns>
-                    <DataGridColumn TItem="GastoDetalleDto" Field="@nameof(GastoDetalleDto.TipoGastoNombre)" Caption="Tipo de Gasto" />
-                    <DataGridColumn TItem="GastoDetalleDto" Field="@nameof(GastoDetalleDto.Monto)" Caption="Monto" />
-                    <DataGridCommandColumn TItem="GastoDetalleDto" />
-                </DataGridColumns>
-            </DataGrid>
-            <Button Color="Color.Info" Clicked="AgregarDetalle">Agregar Detalle</Button>
-            
-        </Validations>
-        <Alert Color="Color.Danger" Visible="@(!string.IsNullOrEmpty(errorMessage))">@errorMessage</Alert>
-    </ModalBody>
-    <ModalFooter>
-        <Button Color="Color.Primary" Clicked="GuardarGastoAsync">Guardar</Button>
-        <Button Color="Color.Secondary" Clicked="()=>modalVisible=false">Cancelar</Button>
-    </ModalFooter>
-</Modal>
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
 
-<Modal @bind-Visible="modalDetalleVisible">
-    <ModalHeader>Agregar Detalle</ModalHeader>
-    <ModalBody>
-        <Validations @ref="detalleValidator" Model="detalleEdit">
-            <Validator For="@(() => detalleEdit.TipoGastoId)">
-                <Field>
-                    <FieldLabel>Tipo de Gasto</FieldLabel>
-                    <Select TValue="int" @bind-Value="detalleEdit.TipoGastoId">
-                        <SelectItem TValue="int" Value="0">-- Seleccione un tipo --</SelectItem>
-                        @if (tiposDeGastoDisponibles != null)
-                        {
+<!-- Modal principal para Gasto -->
+<div class="modal fade @(modalVisible ? "show d-block" : "")" tabindex="-1" style="background:rgba(0,0,0,0.3);" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@(editando ? "Editar Gasto" : "Nuevo Gasto")</h5>
+                <button type="button" class="btn-close" @onclick="() => modalVisible = false"></button>
+            </div>
+            <EditForm Model="gastoEdit" OnValidSubmit="GuardarGastoAsync">
+                <DataAnnotationsValidator />
+                <div class="modal-body">
+                    <ValidationSummary />
+                    <div class="mb-3">
+                        <label class="form-label">Fecha</label>
+                        <InputDate class="form-control" @bind-Value="gastoEdit.Fecha" />
+                        <ValidationMessage For="@(() => gastoEdit.Fecha)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fondo Monetario</label>
+                        <InputText class="form-control" @bind-Value="gastoEdit.FondoMonetarioNombre" />
+                        <ValidationMessage For="@(() => gastoEdit.FondoMonetarioNombre)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Observaciones</label>
+                        <InputText class="form-control" @bind-Value="gastoEdit.Observaciones" />
+                        <ValidationMessage For="@(() => gastoEdit.Observaciones)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre de Comercio</label>
+                        <InputText class="form-control" @bind-Value="gastoEdit.NombreComercio" />
+                        <ValidationMessage For="@(() => gastoEdit.NombreComercio)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Documento</label>
+                        <InputText class="form-control" @bind-Value="gastoEdit.TipoDocumento" />
+                        <ValidationMessage For="@(() => gastoEdit.TipoDocumento)" />
+                    </div>
+                    <h5 class="mt-4 mb-2">Detalle de Gastos</h5>
+                    <table class="table table-sm table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tipo de Gasto</th>
+                                <th>Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (gastoEdit.Detalles.Count == 0)
+                            {
+                                <tr><td colspan="2" class="text-center">Sin detalles</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var d in gastoEdit.Detalles)
+                                {
+                                    <tr>
+                                        <td>@d.TipoGastoNombre</td>
+                                        <td>@d.Monto.ToString("C")</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                    <button type="button" class="btn btn-info btn-sm" @onclick="AgregarDetalle"><i class="fa fa-plus me-1"></i>Agregar Detalle</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-save me-1"></i>Guardar</button>
+                    <button type="button" class="btn btn-secondary" @onclick="() => modalVisible = false">Cancelar</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Detalle de Gasto -->
+<div class="modal fade @(modalDetalleVisible ? "show d-block" : "")" tabindex="-1" style="background:rgba(0,0,0,0.3);" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Agregar Detalle</h5>
+                <button type="button" class="btn-close" @onclick="() => modalDetalleVisible = false"></button>
+            </div>
+            <EditForm Model="detalleEdit" OnValidSubmit="ConfirmarDetalle">
+                <DataAnnotationsValidator />
+                <div class="modal-body">
+                    <ValidationSummary />
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Gasto</label>
+                        <InputSelect class="form-select" @bind-Value="detalleEdit.TipoGastoId">
+                            <option value="0">-- Seleccione un tipo --</option>
                             @foreach (var tipoGasto in tiposDeGastoDisponibles)
                             {
-                                <SelectItem TValue="int" Value="@tipoGasto.Id">@tipoGasto.Nombre (@tipoGasto.Codigo)</SelectItem>
+                                <option value="@tipoGasto.Id">@tipoGasto.Nombre (@tipoGasto.Codigo)</option>
                             }
-                        }
-                    </Select>
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-            <Validator For="@(() => detalleEdit.Monto)">
-                <Field>
-                    <FieldLabel>Monto</FieldLabel>
-                    <NumericEdit TValue="decimal" @bind-Value="detalleEdit.Monto" Placeholder="Monto" />
-                    <ValidationMessage />
-                </Field>
-            </Validator>
-        </Validations>
-    </ModalBody>
-    <ModalFooter>
-        <Button Color="Color.Primary" Clicked="ConfirmarDetalle">Agregar</Button>
-        <Button Color="Color.Secondary" Clicked="()=>modalDetalleVisible=false">Cancelar</Button>
-    </ModalFooter>
-</Modal>
+                        </InputSelect>
+                        <ValidationMessage For="@(() => detalleEdit.TipoGastoId)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Monto</label>
+                        <InputNumber class="form-control" @bind-Value="detalleEdit.Monto" step="0.01" />
+                        <ValidationMessage For="@(() => detalleEdit.Monto)" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Agregar</button>
+                    <button type="button" class="btn btn-secondary" @onclick="() => modalDetalleVisible = false">Cancelar</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
 
 @code {
-
-    List<TipoGastoDto> tiposDeGastoDisponibles = new(); 
-
+    List<TipoGastoDto> tiposDeGastoDisponibles = new();
     List<GastoEncabezadoDto> gastos = new();
-    GastoEncabezadoDto gastoEdit = new() 
-    { 
-        Detalles = new List<GastoDetalleDto>() 
-    };
-
+    GastoEncabezadoDto gastoEdit = new() { Detalles = new List<GastoDetalleDto>() };
     bool modalVisible = false;
     bool editando = false;
-    Validations? validator;
     bool modalDetalleVisible = false;
-    Validations? detalleValidator;
     GastoDetalleDto detalleEdit = new();
     string? errorMessage;
 
@@ -150,7 +182,7 @@
     {
         try
         {
-            var response = await Http.GetAsync("api/GastoEncabezado"); 
+            var response = await Http.GetAsync("api/GastoEncabezado");
             if (response.IsSuccessStatusCode)
             {
                 gastos = await response.Content.ReadFromJsonAsync<List<GastoEncabezadoDto>>() ?? new List<GastoEncabezadoDto>();
@@ -158,17 +190,14 @@
             else
             {
                 errorMessage = $"Error al cargar gastos: {response.StatusCode} - {await response.Content.ReadAsStringAsync() }";
-                Console.WriteLine(errorMessage); 
-                gastos = new List<GastoEncabezadoDto>(); 
+                gastos = new List<GastoEncabezadoDto>();
             }
         }
         catch (Exception ex)
         {
             errorMessage = $"Excepción al cargar gastos: {ex.Message}";
-            Console.WriteLine(errorMessage); 
             gastos = new List<GastoEncabezadoDto>();
         }
-        StateHasChanged(); // Puede ser necesario 
     }
 
     void NuevoGasto()
@@ -178,7 +207,6 @@
         modalVisible = true;
     }
 
-
     async Task CargarTiposDeGastoDisponiblesAsync()
     {
         tiposDeGastoDisponibles = await Http.GetFromJsonAsync<List<TipoGastoDto>>("api/TipoGasto") ?? new();
@@ -186,20 +214,19 @@
 
     void AgregarDetalle()
     {
-        detalleEdit = new GastoDetalleDto(); 
+        detalleEdit = new GastoDetalleDto();
         modalDetalleVisible = true;
     }
 
     async Task ConfirmarDetalle()
     {
-        if (detalleValidator is null || !await detalleValidator.ValidateAll()) return;
-
+        if (detalleEdit.TipoGastoId == 0 || detalleEdit.Monto <= 0)
+            return;
         var tipoGastoSeleccionado = tiposDeGastoDisponibles.FirstOrDefault(tg => tg.Id == detalleEdit.TipoGastoId);
-
         gastoEdit.Detalles.Add(new GastoDetalleDto
         {
             TipoGastoId = detalleEdit.TipoGastoId,
-            TipoGastoNombre = tipoGastoSeleccionado?.Nombre, 
+            TipoGastoNombre = tipoGastoSeleccionado?.Nombre,
             Monto = detalleEdit.Monto
         });
         modalDetalleVisible = false;
@@ -208,8 +235,11 @@
     async Task GuardarGastoAsync()
     {
         errorMessage = null;
-        if (validator is null || !await validator.ValidateAll()) return;
-        // Asignar nombres a los detalles antes de guardar
+        if (gastoEdit.Fecha == default || string.IsNullOrWhiteSpace(gastoEdit.FondoMonetarioNombre) || string.IsNullOrWhiteSpace(gastoEdit.NombreComercio) || string.IsNullOrWhiteSpace(gastoEdit.TipoDocumento) || gastoEdit.Detalles.Count == 0)
+        {
+            errorMessage = "Todos los campos y al menos un detalle son obligatorios.";
+            return;
+        }
         foreach (var detalle in gastoEdit.Detalles)
         {
             var tipoGasto = tiposDeGastoDisponibles.FirstOrDefault(t => t.Id == detalle.TipoGastoId);
@@ -247,7 +277,7 @@
             Observaciones = gasto.Observaciones,
             NombreComercio = gasto.NombreComercio,
             TipoDocumento = gasto.TipoDocumento,
-            Detalles = gasto.Detalles.Select(d => new GastoDetalleDto { TipoGastoNombre = d.TipoGastoNombre, Monto = d.Monto }).ToList()
+            Detalles = gasto.Detalles.Select(d => new GastoDetalleDto { TipoGastoId = d.TipoGastoId, TipoGastoNombre = d.TipoGastoNombre, Monto = d.Monto }).ToList()
         };
         editando = true;
         modalVisible = true;
@@ -258,6 +288,4 @@
         await Http.DeleteAsync($"api/GastoEncabezado/{gasto.Id}");
         await CargarGastosAsync();
     }
-
-   
 }

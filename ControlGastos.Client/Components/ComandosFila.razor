@@ -2,12 +2,8 @@
 @* componente genérico para cualquier tipo de ítem *@
 
 <div class="d-flex gap-1">
-    <Button Color="Color.Primary" Size="Size.Small" Clicked="OnEditClicked" Class="me-1">
-        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Edit" /> Editar
-    </Button>
-    <Button Color="Color.Danger" Size="Size.Small" Clicked="OnDeleteClicked">
-        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Trash" /> Eliminar
-    </Button>
+    <button class="btn btn-sm btn-primary me-1" @onclick="OnEditClicked"><i class="fa fa-edit"></i></button>
+    <button class="btn btn-sm btn-danger" @onclick="OnDeleteClicked"><i class="fa fa-trash"></i></button>
 </div>
 
 @code {
