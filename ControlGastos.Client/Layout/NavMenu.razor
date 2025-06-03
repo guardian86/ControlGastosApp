@@ -82,7 +82,7 @@
         await AuthService.LogoutAsync();
         isAuthenticated = false;
         userName = null;
-        NavigationManager.NavigateTo("/login", true);
+        NavigationManager.NavigateTo("/", true);
     }
 }
 

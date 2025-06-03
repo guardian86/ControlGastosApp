@@ -11,6 +11,12 @@
     <i class="fa fa-plus me-1"></i> Nuevo Presupuesto
 </button>
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
+
+
 <table class="table table-striped table-bordered table-hover align-middle">
     <thead class="table-dark">
         <tr>
@@ -102,12 +108,7 @@
     </div>
 </div>
 
-<div class="mb-3" style="min-height:32px">
-    @if (!string.IsNullOrEmpty(errorMessage))
-    {
-        <div class="alert alert-warning">@errorMessage</div>
-    }
-</div>
+
 
 @code {
     List<TipoGastoDto> tiposDeGastoDisponibles = new();
@@ -125,7 +126,24 @@
 
     async Task CargarPresupuestosAsync()
     {
-        presupuestos = await Http.GetFromJsonAsync<List<PresupuestoDto>>("api/Presupuestos") ?? new();
+        try
+        {
+            presupuestos = await Http.GetFromJsonAsync<List<PresupuestoDto>>("api/Presupuestos") ?? new();
+            errorMessage = null;
+        }
+        catch (HttpRequestException ex)
+        {
+            if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                presupuestos = new();
+                errorMessage = "No está autorizado. Por favor inicie sesión para ver los presupuestos.";
+            }
+            else
+            {
+                presupuestos = new();
+                errorMessage = $"Error al cargar presupuestos: {ex.Message}";
+            }
+        }
     }
 
     async Task CargarTiposDeGastoDisponiblesAsync()
@@ -140,7 +158,7 @@
             if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
                 tiposDeGastoDisponibles = new();
-                errorMessage = "No está autorizado. Por favor inicie sesión para ver los tipos de gasto.";
+                errorMessage = $"Error al cargar los presupuestos. {ex.Message}";
             }
             else
             {

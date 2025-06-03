@@ -11,6 +11,12 @@
     <i class="fa fa-plus me-1"></i> Nuevo Fondo Monetario
 </button>
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
+
+
 <table class="table table-striped table-bordered table-hover align-middle">
     <thead class="table-dark">
         <tr>
@@ -44,11 +50,6 @@
         }
     </tbody>
 </table>
-
-@if (!string.IsNullOrEmpty(errorMessage))
-{
-    <div class="alert alert-danger mt-3">@errorMessage</div>
-}
 
 <!-- Modal Bootstrap -->
 <div class="modal fade @(modalVisible ? "show d-block" : "")" tabindex="-1" style="background:rgba(0,0,0,0.3);" role="dialog">
@@ -111,7 +112,7 @@
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
         {
-            errorMessage = $"No está autorizado. Por favor inicie sesión para ver los fondos monetarios. {ex.Message}";
+            errorMessage = $"Error al cargar los fondos monetarios. {ex.Message}";
             fondos = new();
         }
         catch (Exception ex)

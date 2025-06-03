@@ -12,6 +12,11 @@
     <i class="fa fa-plus me-1"></i> Nuevo Gasto
 </button>
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
+
 <table class="table table-striped table-bordered table-hover align-middle">
     <thead class="table-dark">
         <tr>
@@ -48,10 +53,7 @@
     </tbody>
 </table>
 
-@if (!string.IsNullOrEmpty(errorMessage))
-{
-    <div class="alert alert-danger mt-3">@errorMessage</div>
-}
+
 
 <!-- Modal principal para Gasto -->
 <div class="modal fade @(modalVisible ? "show d-block" : "")" tabindex="-1" style="background:rgba(0,0,0,0.3);" role="dialog">
