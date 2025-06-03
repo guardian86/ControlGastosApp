@@ -105,7 +105,20 @@
 
     async Task CargarFondosAsync()
     {
-        fondos = await Http.GetFromJsonAsync<List<FondoMonetarioDto>>("api/FondoMonetario") ?? new();
+        try
+        {
+            fondos = await Http.GetFromJsonAsync<List<FondoMonetarioDto>>("api/FondoMonetario") ?? new();
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            errorMessage = "No está autorizado. Por favor inicie sesión para ver los fondos monetarios.";
+            fondos = new();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error inesperado: {ex.Message}";
+            fondos = new();
+        }
     }
 
     void NuevoFondo()
