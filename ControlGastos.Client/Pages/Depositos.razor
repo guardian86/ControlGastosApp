@@ -192,6 +192,9 @@
 
     async Task DeleteDeposito(DepositoDto deposito)
     {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"¿Está seguro que desea eliminar el depósito del {deposito.Fecha.ToShortDateString()} por {deposito.Monto.ToString("C")}?" );
+        if (!confirmed)
+            return;
         try
         {
             var response = await Http.DeleteAsync($"api/Depositos/{deposito.Id}");

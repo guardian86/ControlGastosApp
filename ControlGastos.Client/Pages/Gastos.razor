@@ -286,6 +286,9 @@
 
     async Task DeleteGasto(GastoEncabezadoDto gasto)
     {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"¿Está seguro que desea eliminar el gasto del {gasto.Fecha.ToShortDateString()} en {gasto.NombreComercio}?");
+        if (!confirmed)
+            return;
         await Http.DeleteAsync($"api/GastoEncabezado/{gasto.Id}");
         await CargarGastosAsync();
     }

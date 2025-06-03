@@ -169,6 +169,9 @@
 
     async Task DeleteFondo(FondoMonetarioDto fondo)
     {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"¿Está seguro que desea eliminar el fondo monetario '{fondo.Nombre}'?");
+        if (!confirmed)
+            return;
         await Http.DeleteAsync($"api/FondoMonetario/{fondo.Id}");
         await CargarFondosAsync();
     }
