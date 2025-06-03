@@ -192,7 +192,8 @@
     async Task DeleteTipoGasto(TipoGastoDto tipo)
     {
         errorMessage = null;
-        if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar '{tipo.Nombre}'?")) return;
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"¿Está seguro que desea eliminar el tipo de gasto {tipo.Nombre} con Código {tipo.Codigo}? ");
+        if (!confirmed) return;
         try
         {
             var response = await Http.DeleteAsync($"api/TipoGasto/{tipo.Id}");
