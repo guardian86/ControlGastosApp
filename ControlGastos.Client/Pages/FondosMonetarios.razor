@@ -111,7 +111,7 @@
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
         {
-            errorMessage = "No está autorizado. Por favor inicie sesión para ver los fondos monetarios.";
+            errorMessage = $"No está autorizado. Por favor inicie sesión para ver los fondos monetarios. {ex.Message}";
             fondos = new();
         }
         catch (Exception ex)

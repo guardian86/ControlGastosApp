@@ -11,6 +11,7 @@ namespace ControlGastos.API
             CreateMap<TipoGasto, TipoGastoDto>().ReverseMap();
             CreateMap<FondoMonetario, FondoMonetarioDto>().ReverseMap();
             CreateMap<Deposito, DepositoDto>().ReverseMap();
+            CreateMap<Presupuesto, PresupuestoDto>().ReverseMap();
             // Add other mappings as needed
         }
     }

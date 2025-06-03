@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoMapper;
 
 namespace ControlGastos.API.Controllers
 {
@@ -14,16 +15,19 @@ namespace ControlGastos.API.Controllers
     public class PresupuestosController : ControllerBase
     {
         private readonly IPresupuestoService _service;
-        public PresupuestosController(IPresupuestoService service)
+        private readonly IMapper _mapper;
+        public PresupuestosController(IPresupuestoService service, IMapper mapper)
         {
             _service = service;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PresupuestoDto>>> GetAll()
         {
             var presupuestos = await _service.GetAllAsync();
-            return Ok(presupuestos);
+            var dtos = _mapper.Map<IEnumerable<PresupuestoDto>>(presupuestos);
+            return Ok(dtos);
         }
 
         [HttpGet("{id}")]
@@ -50,17 +54,19 @@ namespace ControlGastos.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] Presupuesto presupuesto)
+        public async Task<ActionResult> Post([FromBody] PresupuestoDto dto)
         {
-            await _service.AddAsync(presupuesto);
-            return CreatedAtAction(nameof(Get), new { id = presupuesto.Id }, presupuesto);
+            var entity = _mapper.Map<Presupuesto>(dto);
+            await _service.AddAsync(entity);
+            return CreatedAtAction(nameof(Get), new { id = entity.Id }, entity);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, [FromBody] Presupuesto presupuesto)
+        public async Task<ActionResult> Put(int id, [FromBody] PresupuestoDto dto)
         {
-            if (id != presupuesto.Id) return BadRequest();
-            await _service.UpdateAsync(presupuesto);
+            if (id != dto.Id) return BadRequest();
+            var entity = _mapper.Map<Presupuesto>(dto);
+            await _service.UpdateAsync(entity);
             return NoContent();
         }
 
