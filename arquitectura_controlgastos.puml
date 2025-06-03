@@ -1,0 +1,35 @@
+@startuml
+!define RECTANGLE class
+RECTANGLE ControlGastosClient {
+  Blazor WebAssembly
+  UI, Validación, Consumo API
+  Autenticación
+}
+RECTANGLE ControlGastosAPI {
+  ASP.NET Core Web API
+  Endpoints REST, Seguridad JWT
+  AutoMapper, Validación
+}
+RECTANGLE ControlGastosApplication {
+  Servicios de Aplicación
+  Lógica de Negocio
+  Orquestación
+}
+RECTANGLE ControlGastosCore {
+  Entidades de Dominio
+  DTOs
+  Interfaces
+}
+RECTANGLE ControlGastosInfrastructure {
+  Repositorios (EF Core)
+  Acceso a Datos
+  Inicialización DB
+}
+
+ControlGastosClient --> ControlGastosAPI : HTTP/REST
+ControlGastosAPI --> ControlGastosApplication
+ControlGastosApplication --> ControlGastosCore
+ControlGastosInfrastructure --> ControlGastosCore
+ControlGastosApplication --> ControlGastosInfrastructure
+
+@enduml
